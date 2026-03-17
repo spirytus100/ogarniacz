@@ -1,0 +1,54 @@
+{% extends 'list.html' %}
+
+{% block title %}Lista inwestycji{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista inwestycji</h1>
+    <a href="{% url 'new_investment' %}" class="btn btn-success btn-sm">Nowa inwestycja</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive"></div>
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless align-middle">
+        <thead>
+            <tr>
+            <th scope="col">Nazwa</th>
+            <th scope="col">Kategoria</th>
+            <th scope="col">Data kupna</th>
+            <th scope="col">Zsumowana cena kupna</th>
+            <th scope="col">Aktualny zysk/strata</th>
+            <th scope="col">Data sprzedaży</th>
+            <th scope="col">Zsumowana cena sprzedaży</th>
+            <th scope="col">Zysk/Strata</th>
+            <th scope="col">Stopa procentowa</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for investment in page_obj %}
+                <tr>
+                    <td><a href="{% url 'investment_details' pk=investment.id %}">{{ investment.name }}</a></td>
+                    <td>{{ investment.category_id }}</td>
+                    <td>{{ investment.buy_date }}</td>
+                    <td>{{ investment.buy_total }}</td>
+                    <td>
+                        {% if investment.current_price and investment.buy_total %}
+                            {{ investment.current_profit|floatformat:2|default:"-" }} ({% widthratio investment.current_profit investment.buy_total 100 %}% )
+                        {% endif %}
+                    <td>{{ investment.sell_date|default:"-" }}</td>
+                    <td>{{ investment.sell_total|default:"-" }}</td>
+                    <td>
+                        {% if investment.buy_total and investment.sell_total %}
+                            {{ investment.profit|floatformat:2|default:"-" }} ({% widthratio investment.profit investment.buy_total 100 %}% )
+                        {% endif %}
+                    </td>
+                    <td>{{ investment.interest_rate|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

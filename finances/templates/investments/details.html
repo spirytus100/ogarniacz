@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Szczegóły inwestycji{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Szczegóły inwestycji</h1>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">{{ investment.name }}</h3>
+            <br>
+            <p class="card-text">Kategoria: {{ investment.category_id }}</p>
+            <p class="card-text">Cena kupna: {{ investment.buy_price }} zł</p>
+            <p class="card-text">Ilość kupna: {{ investment.buy_quantity }}</p>
+            <p class="card-text">Prowizja zakupu: {{ investment.buy_commission }} zł</p>
+            <p class="card-text">Aktualna cena: {{ investment.current_price }} zł</p>
+            <p class="card-text">Data aktualnej ceny: {{ investment.current_price_date }}</
+            <p class="card-text">Cena sprzedaży: {{ investment.sell_price }} zł</p>
+            <p class="card-text">Ilość sprzedaży: {{ investment.sell_quantity }}</p>
+            <p class="card-text">Prowizja sprzedaży: {{ investment.sell_commission }} zł</p>
+            <p class="card-text">Data zakupu: {{ investment.buy_date }}</p>
+            <p class="card-text">Data sprzedaży: {{ investment.sell_date }}</p>
+            <p class="card-text">Waluta: {{ investment.currency }}</p>
+            <p class="card-text">Stopa procentowa: {{ investment.interest_rate }}</p>
+            <p class="card-text">Aktywna: {{ investment.active }}</p>
+            <p class="card-text">Inwestycja emerytalna: {{ investment.retirement }}</p>
+            <hr>
+            <div class="d-flex justify-content-between mt-4">
+                
+                <!-- Przycisk po LEWEJ stronie -->
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    &laquo; Wróć do listy
+                </a>
+
+                <!-- Przyciski po PRAWEJ stronie (zgrupowane w dodatkowym divie) -->
+                <div>
+                    <!-- Przycisk Edycji (Żółty/Ostrzegawczy) -->
+                    <a href="{% url 'edit_investment' pk=investment.id %}" class="btn btn-warning">
+                        Edytuj
+                    </a>
+                    
+                    <!-- Przycisk Usuwania (Czerwony, z marginesem z lewej strony: ms-2) -->
+                    <!-- Zakładam, że nazwa URL do usuwania to 'delete_wish' -->
+                    <a href="{% url 'delete_investment' pk=investment.id %}" class="btn btn-danger ms-2">
+                        Usuń
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}

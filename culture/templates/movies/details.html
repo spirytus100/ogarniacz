@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Filmy{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Szczegóły filmu</h1>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">{{ movie.title }}</h3>
+            <br>
+            <p class="card-text">Rok produkcji: {{ movie.production_year }}</p>
+            <p class="card-text">Gatunek: {{ movie.genre_id }}</p>
+            <p class="card-text">Ostatnio obejrzany: {{ movie.watch_date }}</p>
+            <p class="card-text">Ocena: {{ movie.rating }}</p>
+            <hr>
+            <div class="d-flex justify-content-between mt-4">
+                
+                <!-- Przycisk po LEWEJ stronie -->
+                <a href="{% url 'movies_list' %}" class="btn btn-secondary">
+                    &laquo; Wróć do listy
+                </a>
+
+                <!-- Przyciski po PRAWEJ stronie (zgrupowane w dodatkowym divie) -->
+                <div>
+                    <!-- Przycisk Edycji (Żółty/Ostrzegawczy) -->
+                    <a href="{% url 'edit_movie' pk=movie.id %}" class="btn btn-warning">
+                        Edytuj
+                    </a>
+                    
+                    <!-- Przycisk Usuwania (Czerwony, z marginesem z lewej strony: ms-2) -->
+                    <!-- Zakładam, że nazwa URL do usuwania to 'delete_need' -->
+                    <a href="{% url 'delete_movie' pk=movie.id %}" class="btn btn-danger ms-2">
+                        Usuń
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}

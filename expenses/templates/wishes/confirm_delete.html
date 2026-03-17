@@ -1,0 +1,32 @@
+{% extends "base.html" %} <!-- Zmień na swój bazowy szablon -->
+
+{% block content %}
+<div class="card border-danger mb-3" style="max-width: 30rem; margin: 0 auto;">
+  <div class="card-body text-center">
+    
+    <h5 class="card-title">Czy na pewno chcesz usunąć ten element?</h5>
+    <p class="card-text text-muted">
+      Usuwasz życzenie: <strong>{{ wish.item }}</strong>.<br>
+      Ta akcja jest nieodwracalna.
+    </p>
+
+    <!-- FORMULARZ USUWANIA -->
+    <form method="POST">
+        {% csrf_token %} <!-- BARDZO WAŻNE: Bez tego Django odrzuci formularz -->
+        
+        <div class="d-flex justify-content-center mt-4">
+            <!-- Guzik Anuluj (Wraca do podglądu lub listy) -->
+            <a href="{% url 'expenses:wishes' %}" class="btn btn-secondary me-3">
+                Anuluj
+            </a>
+            
+            <!-- Guzik Potwierdzenia (Wysyła POST i uruchamia usuwanie) -->
+            <button type="submit" class="btn btn-danger">
+                Tak, usuń bezpowrotnie
+            </button>
+        </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'list.html' %}
+
+{% block title %}Potrzeby{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista dochodów</h1>
+    <a href="{% url 'new_income' %}" class="btn btn-success btn-sm">Nowy dochód</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+            <th scope="col">Nazwa</th>
+            <th scope="col">Kategoria</th>
+            <th scope="col">Data</th>
+            <th scope="col">Kwota</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for income in page_obj %}
+                <tr>
+                    <td><a href="{% url 'income_details' pk=income.id %}">{{ income.name }}</a></td>
+                    <td>{{ income.category }}</td>
+                    <td>{{ income.date }}</td>
+                    <td>{{ income.value }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

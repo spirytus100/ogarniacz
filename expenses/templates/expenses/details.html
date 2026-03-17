@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Szczegóły Wydatku{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Szczegóły wydatku</h1>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">{{ expense.item }}</h3>
+            <br>
+            <p class="card-text">Cena: {{ expense.price }} zł</p>
+            <p class="card-text">Ilość: {{ expense.quantity }}</p>
+            <p class="card-text">Kategoria: {{ expense.category_id }}</p>
+            <p class="card-text">Firma: {{ expense.company }}</p>
+            <p class="card-text">Data: {{ expense.date }}</p>
+            <hr>
+            <div class="d-flex justify-content-between mt-4">
+                
+                <!-- Przycisk po LEWEJ stronie -->
+                <a href="{% url 'expenses:index' %}" class="btn btn-secondary">
+                    &laquo; Wróć do listy
+                </a>
+
+                <!-- Przyciski po PRAWEJ stronie (zgrupowane w dodatkowym divie) -->
+                <div>
+                    <!-- Przycisk Edycji (Żółty/Ostrzegawczy) -->
+                    <a href="{% url 'expenses:edit' pk=expense.id %}" class="btn btn-warning">
+                        Edytuj
+                    </a>
+                    
+                    <!-- Przycisk Usuwania (Czerwony, z marginesem z lewej strony: ms-2) -->
+                    <!-- Zakładam, że nazwa URL do usuwania to 'delete_need' -->
+                    <a href="{% url 'expenses:delete_expense' pk=expense.id %}" class="btn btn-danger ms-2">
+                        Usuń
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}

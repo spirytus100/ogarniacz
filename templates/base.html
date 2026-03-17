@@ -1,0 +1,209 @@
+{% extends "base_auth.html" %}
+<!DOCTYPE html>
+<html lang="pl" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        /* Niestandardowe style dla poprawienia układu dashboardu */
+        
+        /* Sidebar: Na desktopie zajmuje 100% wysokości i jest przyklejony */
+        .sidebar {
+            min-height: 100vh;
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, .1);
+        }
+
+        /* Stylizacja linków w menu */
+        .nav-link {
+            color: rgba(255, 255, 255, .75);
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+
+        /* Karty modułowe - delikatne wyróżnienie cieniem */
+        .dashboard-card {
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.5)!important;
+        }
+    </style>
+</head>
+<body>
+    {% block app_content %}
+
+    <!-- GÓRNY PASEK NAWIGACJI (Widoczny głównie na mobile do obsługi toggle) -->
+    <header class="navbar navbar-expand-md sticky-top bg-body-tertiary border-bottom shadow-sm" style="z-index: 1000;">
+        <div class="container-fluid">
+            <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="/">
+                <i class="bi bi-speedometer2 me-2"></i>Ogarniacz
+            </a>
+            
+            <!-- Przycisk Hamburger (widoczny tylko na małych ekranach) -->
+            <button class="navbar-toggler position-absolute d-md-none collapsed right-0" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Przełącz nawigację" style="right: 15px; top: 10px;">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Wyszukiwarka / Opcje (ukryte na mobile dla czystości, widoczne na desktop) -->
+            <div class="navbar-nav w-100 d-none d-md-block">
+                <div class="nav-item text-nowrap text-end px-3">
+                    {% if user.is_authenticated %}
+                        <span class="text-muted small me-3">Witaj, {{ user.username }}!</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            
+            <!-- LEWE MENU (SIDEBAR) -->
+            <!-- Klasy d-md-block zapewniają widoczność na desktopie, collapse ukrywa na mobile -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-body-tertiary sidebar collapse collapse-horizontal">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item mb-2">
+                            <a class="nav-link active" aria-current="page" href="/">
+                                <i class="bi bi-house-door me-2"></i>
+                                Strona główna
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/expenses/">
+                                <i class="bi bi-cart me-2"></i>
+                                Wydatki
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/expenses/budget/">
+                                <i class="bi bi-wallet me-2"></i>
+                                Budżet
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/life/tasks/">
+                                <i class="bi bi-check2 me-2"></i>
+                                Do zrobienia
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/expenses/needs/">
+                                <i class="bi bi-card-checklist me-2"></i>
+                                Potrzeby
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/expenses/wishes/">
+                                <i class="bi bi-magic me-2"></i>
+                                Lista życzeń
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/finances/cash/">
+                                <i class="bi bi-cash me-2"></i>
+                                Gotówka
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/finances/incomes/">
+                                <i class="bi bi-arrow-down-circle-fill me-2"></i>
+                                Dochody
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/finances/investments/">
+                                <i class="bi bi-piggy-bank me-2"></i>
+                                Inwestycje
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/culture/movies/">
+                                <i class="bi bi-film me-2"></i>
+                                Filmy
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/culture/books">
+                                <i class="bi bi-book me-2"></i>
+                                Książki
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Ustawienia</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-gear me-2"></i>
+                                Ustawienia
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Administracja
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <a class="nav-link" href="#" onclick="this.closest('form').submit(); return false;">
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Wyloguj
+                                </a>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- GŁÓWNA ZAWARTOŚĆ (CENTRALNA) -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                
+                <!-- Nagłówek sekcji -->
+                {% block section_header %}{% endblock %}
+
+                <!-- Wyświetlanie ewentualnych błędów-->
+                 {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <li class="{{ message.tags }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <!-- KOLUMNY Z TREŚCIĄ -->
+                <div class="row">
+                    {% block content %}{% endblock %}
+                </div> <!-- Koniec Row -->
+
+                <!-- STRONICOWANIE -->
+                <div class="row">
+                    {% block pagination %}{% endblock %}
+                </div> <!-- Koniec Row -->
+
+                
+                <!-- Stopka -->
+                <footer class="pt-5 d-flex justify-content-between text-muted align-items-center">
+                    <span class="small">&copy; JW</span>
+                    <span class="small">v1.0.0</span>
+                </footer>
+
+            </main>
+        </div>
+    </div>
+{% endblock %}
+</html>

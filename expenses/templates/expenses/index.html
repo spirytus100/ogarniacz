@@ -1,0 +1,37 @@
+{% extends 'list.html' %}
+
+{% block title %}Wydatki{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista wydatków</h1>
+    <a href="{% url 'expenses:new' %}" class="btn btn-success btn-sm">Nowy wydatek</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+            <th scope="col">Data</th>
+            <th scope="col">Przedmiot</th>
+            <th scope="col">Suma</th>
+            <th scope="col">Kategoria</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in page_obj %}
+                <tr>
+                    <td>{{ expense.date|date:"Y-m-d" }}</td>
+                    <td><a href="{% url 'expenses:details' pk=expense.id %}">{{ expense.item }}</a></td>
+                    <td>{{ expense.total_price }}</td>
+                    <td>{{ expense.category_id }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Gotówka{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista środków pieniężnych</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+            <th scope="col">Nazwa</th>
+            <th scope="col">Kwota</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for el in cash %}
+                <tr>
+                    <td><a href="{% url 'edit_cash' pk=el.id %}">{{ el.name }}</a></td>
+                    <td>{{ el.value }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

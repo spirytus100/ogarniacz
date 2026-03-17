@@ -1,0 +1,117 @@
+<!-- templates/filmy/film_form.html -->
+{% extends 'base.html' %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Edycja inwestycji</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Renderowanie pól formularza -->
+                        <!-- Jeśli użyłeś widgets w forms.py, będą miały styl Bootstrap -->
+                        <div class="mb-3">
+                            <label class="form-label">Nazwa</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Kategoria</label>
+                            {{ form.category_id }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Data kupna</label>
+                            {{ form.buy_date }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ilość kupna</label>
+                            {{ form.buy_quantity }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cena kupna</label>
+                            {{ form.buy_price }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prowizja zakupu</label>
+                            {{ form.buy_commission }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Aktualna cena</label>
+                            {{ form.current_price }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Data aktualnej ceny</label>
+                            {{ form.current_price_date }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Data sprzedaży</label>
+                            {{ form.sell_date }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ilość sprzedaży</label>
+                            {{ form.sell_quantity }}
+                        </div>
+
+                         <div class="mb-3">
+                            <label class="form-label">Cena sprzedaży</label>
+                            {{ form.sell_price }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prowizja sprzedaży</label>
+                            {{ form.sell_commission }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Aktywna</label>
+                            {{ form.active }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Stopa procentowa</label>
+                            {{ form.interest_rate }}
+                        </div>
+
+                         <div class="mb-3">
+                            <label class="form-label">Waluta</label>
+                            {{ form.currency }}
+                        </div>
+
+                         <div class="mb-3">
+                            <label class="form-label">Emerytura</label>
+                            {{ form.retirement }}
+                        </div>
+
+                        <!-- Przyciski -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <!-- Przycisk Anuluj (wraca do szczegółów) -->
+                            <!-- UWAGA: object.pk może nie istnieć przy tworzeniu nowego,
+                                 ale przy edycji zawsze jest. Można użyć bezpiecznego linku wstecz. -->
+                            <a href="{% url 'list_of_investments' %}" class="btn btn-secondary">Anuluj</a>
+                            
+                            <!-- Przycisk Zapisz -->
+                            <button type="submit" class="btn btn-success">Zapisz</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

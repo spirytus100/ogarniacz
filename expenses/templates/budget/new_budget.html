@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Budżet</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" onsubmit="return confirm('Czy na pewno chcesz nadpisać cały budżet?');">
+    {% csrf_token %}
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0 bg-white">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 50%;">Kategoria wydatku</th>
+                    <th scope="col" style="width: 50%;">Szacowana kwota (zł)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Iterujemy przez wszystkie pola formularza -->
+                {% for field in form %}
+                <tr>
+                    <td class="fw-medium text-light">
+                        <!-- Wyświetlamy etykietę (np. "Jedzenie", "Rachunki") -->
+                        {{ field.label }}
+                    </td>
+                    <td>
+                        <!-- Ważne: W forms.py pole musi mieć widget z klasą 'form-control form-control-sm' -->
+                        <div class="input-group input-group-sm">
+                            {{ field }}
+                            <span class="input-group-text">zł</span>
+                        </div>
+                        <!-- Błędy walidacji -->
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-3 text-end">
+        <a href="javascript:history.back()" class="btn btn-secondary me-2">Anuluj</a>
+        <button type="submit" class="btn btn-primary px-4">Zapisz budżet</button>
+    </div>
+</form>
+{% endblock %}

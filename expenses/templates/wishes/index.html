@@ -1,0 +1,35 @@
+{% extends 'list.html' %}
+
+{% block title %}Życzenia{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista życzeń</h1>
+    <a href="{% url 'expenses:new_wish' %}" class="btn btn-success btn-sm">Nowe życzenie</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+            <th scope="col">Przedmiot</th>
+            <th scope="col">Kategoria</th>
+            <th scope="col">Szacowana cena</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for wish in page_obj %}
+                <tr>
+                    <td><a href="{% url 'expenses:wish_details' pk=wish.id %}">{{ wish.item }}</a></td>
+                    <td>{{ wish.category_id }}</td>
+                    <td>{{ wish.price }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

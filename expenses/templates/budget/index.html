@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Budżet</h1>
+    <a href="{% url 'expenses:new_budget' %}" class="btn btn-success btn-sm">Nowy budżet</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- shadow-sm i rounded dodają delikatny, nowoczesny wygląd -->
+    <div class="table-responsive shadow-sm rounded">
+        <!-- Klasa mb-0 usuwa dolny margines tabeli, żeby ładnie przylegała do zaokrąglonego kontenera -->
+        <table class="table table-hover table-bordered align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 25%;">Kategoria</th>
+                    <th scope="col" class="text-end" style="width: 15%;">Spodziewany koszt</th>
+                    <th scope="col" class="text-end" style="width: 15%;">Rzeczywisty koszt</th>
+                    <th scope="col" class="text-end" style="width: 15%;">Różnica</th>
+                    <th scope="col" style="width: 30%;">Komentarz</th>
+                </tr>
+            </thead>
+            
+            <tbody class="table-group-divider">
+                {% for item in budget %}
+                <tr>
+                    <!-- Kategoria -->
+                    <td class="fw-medium text-light">{{ item.category_id }}</td>
+                    
+                    <!-- Spodziewany koszt -->
+                    <td class="text-end text-muted">
+                        {{ item.expected_cost|default:"0.00" }} zł
+                    </td>
+                    
+                    <!-- Rzeczywisty koszt -->
+                    <td class="text-end fw-bold">
+                        {{ item.actual_cost|default:"0.00" }} zł
+                    </td>
+                    
+                    <!-- Różnica: Zielony jeśli na plusie (oszczędność), Czerwony jeśli na minusie (przekroczenie budżetu) -->
+                    <td class="text-end fw-bold {% if item.difference < 0 %}text-danger{% elif item.difference > 0 %}text-success{% else %}text-muted{% endif %}">
+                        {{ item.difference|default:"0.00" }} zł
+                    </td>
+                    
+                    <!-- Komentarz -->
+                    <td class="text-secondary fst-italic">
+                        <!-- Jeśli brak komentarza, wyświetlamy myślnik -->
+                        {{ item.comment|default:"-" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        Brak zdefiniowanych kategorii w budżecie.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+            <!-- Opcjonalna stopka z podsumowaniem całości -->
+            <tfoot class="table-dark">
+                <tr>
+                    <td class="fw-bold text-uppercase">Suma</td>
+                    <td class="text-end fw-bold">{{ total_expected|default:"0.00" }} zł</td>
+                    <td class="text-end fw-bold">{{ total_actual|default:"0.00" }} zł</td>
+                    <td class="text-end fw-bold {% if total_difference < 0 %}text-danger{% elif total_difference > 0 %}text-success{% endif %}">
+                        {{ total_difference|default:"0.00" }} zł
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

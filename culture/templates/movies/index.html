@@ -1,0 +1,39 @@
+{% extends 'list.html' %}
+
+{% block title %}Filmy{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista filmów</h1>
+    <a href="{% url 'new_movie' %}" class="btn btn-success btn-sm">Nowy film</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless">
+        <thead>
+            <tr>
+            <th scope="col">Tytuł</th>
+            <th scope="col">Rok</th>
+            <th scope="col">Gatunek</th>
+            <th scope="col">Data obejrzenia</th>
+            <th scope="col">Ocena</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in page_obj %}
+                <tr>
+                    <td><a href="{% url 'movie_details' pk=movie.id %}">{{ movie.title|truncatewords:6 }}</a></td>
+                    <td>{{ movie.production_year }}</td>
+                    <td>{{ movie.genre_id }}</td>
+                    <td>{{ movie.watch_date }}</td>
+                    <td>{{ movie.rating }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

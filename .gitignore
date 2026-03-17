@@ -1,0 +1,63 @@
+# =========================
+# PYTHON
+# =========================
+# Skompilowane pliki Pythona
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Środowiska wirtualne (Virtualenv)
+venv/
+env/
+.venv/
+.env_dir/
+
+# =========================
+# DJANGO
+# =========================
+# Lokalna baza danych (nigdy nie wrzucaj bazy na GitHuba!)
+db.sqlite3
+db.sqlite3-journal
+
+# Pliki konfiguracyjne z hasłami / Zmienne środowiskowe
+.env
+.env.local
+local_settings.py
+secret.py
+
+# Pliki wgrane przez użytkowników (Media)
+media/
+uploads/
+
+# Zebrane pliki statyczne (wynik komendy collectstatic)
+# Uwaga: Nie ignorujemy folderu "static/", w którym piszesz swój kod CSS/JS!
+staticfiles/
+static_root/
+public_html/static/
+
+# Logi aplikacji
+*.log
+logs/
+
+# =========================
+# TESTY I NARZĘDZIA
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# =========================
+# SYSTEMY OPERACYJNE I IDE (Edytory kodu)
+# =========================
+# Mac OS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Edytory (VS Code, PyCharm, Sublime itp.)
+.vscode/
+.idea/
+*.swp
+*.swo

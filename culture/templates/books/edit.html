@@ -1,0 +1,67 @@
+<!-- templates/filmy/film_form.html -->
+{% extends 'base.html' %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Edycja książki</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Renderowanie pól formularza -->
+                        <!-- Jeśli użyłeś widgets w forms.py, będą miały styl Bootstrap -->
+                        <div class="mb-3">
+                            <label class="form-label">Autor</label>
+                            {{ form.author }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tytuł</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Rok publikacji</label>
+                            {{ form.published_year }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Data przeczytania</label>
+                            {{ form.date_finished }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Liczba stron</label>
+                            {{ form.number_of_pages }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Moja ocena</label>
+                            {{ form.rating }}
+                        </div>
+
+                        <!-- Przyciski -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <!-- Przycisk Anuluj (wraca do szczegółów) -->
+                            <!-- UWAGA: object.pk może nie istnieć przy tworzeniu nowego,
+                                 ale przy edycji zawsze jest. Można użyć bezpiecznego linku wstecz. -->
+                            <a href="/culture/movies" class="btn btn-secondary">Anuluj</a>
+                            
+                            <!-- Przycisk Zapisz -->
+                            <button type="submit" class="btn btn-success">Zapisz</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

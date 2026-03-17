@@ -1,0 +1,57 @@
+<!-- templates/filmy/film_form.html -->
+{% extends 'base.html' %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Nowe zadanie</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Renderowanie pól formularza -->
+                        <!-- Jeśli użyłeś widgets w forms.py, będą miały styl Bootstrap -->
+                         <div class="mb-3">
+                            <label class="form-label">Nazwa</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Opis</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Priorytet</label>
+                            {{ form.priority }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Data ukończenia</label>
+                            {{ form.completion_date }}
+                        </div>
+
+                        <!-- Przyciski -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <!-- Przycisk Anuluj (wraca do szczegółów) -->
+                            <!-- UWAGA: object.pk może nie istnieć przy tworzeniu nowego,
+                                 ale przy edycji zawsze jest. Można użyć bezpiecznego linku wstecz. -->
+                            <a href="javascript:history.back()" class="btn btn-secondary">Anuluj</a>
+                            
+                            <!-- Przycisk Zapisz -->
+                            <button type="submit" class="btn btn-success">Zapisz</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

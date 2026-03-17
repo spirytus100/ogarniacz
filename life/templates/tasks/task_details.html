@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Szczegóły dochodu{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Szczegóły zadania</h1>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">{{ task.name }}</h3>
+            <br>
+            <p class="card-text">Opis: {{ task.description }}</p>
+            <p class="card-text">Priorytet: {{ task.priority|title }}</p>
+            <p class="card-text">Data ukończenia: {{ task.completion_date }}</p>
+            <hr>
+            <div class="d-flex justify-content-between mt-4">
+                
+                <!-- Przycisk po LEWEJ stronie -->
+                <a href="{% url 'tasks' %}" class="btn btn-secondary">
+                    &laquo; Wróć do listy
+                </a>
+
+                <!-- Przyciski po PRAWEJ stronie (zgrupowane w dodatkowym divie) -->
+                <div>
+                    <!-- Przycisk Edycji (Żółty/Ostrzegawczy) -->
+                    <a href="{% url 'edit_task' pk=task.id %}" class="btn btn-warning">
+                        Edytuj
+                    </a>
+                    
+                    <!-- Przycisk Usuwania (Czerwony, z marginesem z lewej strony: ms-2) -->
+                    <!-- Zakładam, że nazwa URL do usuwania to 'delete_income' -->
+                    <a href="{% url 'delete_task' pk=task.id %}" class="btn btn-danger ms-2">
+                        Usuń
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}

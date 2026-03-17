@@ -1,0 +1,39 @@
+{% extends 'list.html' %}
+
+{% block title %}Książki{% endblock %}
+
+{% block section_header %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2">Lista książek</h1>
+    <a href="{% url 'new_book' %}" class="btn btn-success btn-sm">Nowa książka</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive"></div>
+    <div style="overflow-x: auto;">
+        <table class="table table-dark table-borderless align-middle">
+        <thead>
+            <tr>
+            <th scope="col">Tytuł</th>
+            <th scope="col">Autor</th>
+            <th scope="col">Rok</th>
+            <th scope="col">Ilość stron</th>
+            <th scope="col">Ocena</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in page_obj %}
+                <tr>
+                    <td><a href="{% url 'book_details' pk=book.id %}">{{ book.title|truncatewords:6 }}</a></td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.published_year }}</td>
+                    <td>{{ book.number_of_pages }}</td>
+                    <td>{{ book.rating }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
