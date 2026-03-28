@@ -6,7 +6,7 @@ from .models import CommonItem, Expense, Budget, Need, Wish, ExpensesCategories,
 
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    list_display = ['item', 'date', 'category_id', 'price', 'quantity', 'company']
+    list_display = ['item', 'expense_date', 'category_id', 'price', 'quantity', 'company']
 
 
 @admin.register(Budget)

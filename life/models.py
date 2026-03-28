@@ -11,7 +11,7 @@ class TaskPriority(models.IntegerChoices):
 
 class Task(models.Model):
     name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     priority = models.SmallIntegerField(choices=TaskPriority.choices, validators=[MinValueValidator(1), MaxValueValidator(3)])
     completion_date = models.DateField(blank=True, null=True)
 

@@ -22,14 +22,14 @@ class CommonItem(models.Model):
 
 
 class Expense(models.Model):
-    date = models.DateField(default=datetime.date.today)
+    expense_date = models.DateField(default=datetime.date.today)
     item = models.CharField(max_length=100)
     category_id = models.ForeignKey(ExpensesCategories, on_delete=models.SET_NULL, null=True, blank=True)
     price = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
     quantity = models.SmallIntegerField(validators=[MinValueValidator(0)])
     company = models.CharField(max_length=50, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.item
@@ -60,8 +60,8 @@ class BudgetResult(models.Model):
     budget = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     expenses = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     result = models.DecimalField(max_digits=7, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.budget is not None and self.expenses is not None:
@@ -78,8 +78,8 @@ class BudgetResultExpenses(models.Model):
     budget = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
     expenses = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
     category_id = models.ForeignKey(ExpensesCategories, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.month}.{self.year} {self.category_id}"
@@ -89,8 +89,8 @@ class Need(models.Model):
     item = models.CharField(max_length=100)
     category_id = models.ForeignKey(ExpensesCategories, on_delete=models.SET_NULL, null=True, blank=True)
     price = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.item
@@ -100,8 +100,8 @@ class Wish(models.Model):
     item = models.CharField(max_length=100)
     category_id = models.ForeignKey(ExpensesCategories, on_delete=models.SET_NULL, null=True, blank=True)
     price = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.item
@@ -112,6 +112,8 @@ class Subscription(models.Model):
     company = models.CharField(max_length=100)
     pay_day = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)])
     price = models.DecimalField(max_digits=7, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name

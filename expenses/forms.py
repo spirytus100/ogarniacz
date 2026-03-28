@@ -14,13 +14,13 @@ class ExpenseForm(forms.ModelForm):
 
     class Meta:
         model = Expense
-        fields = ['item', 'price', 'quantity', 'category_id', 'date', 'company']
+        fields = ['item', 'price', 'quantity', 'category_id', 'expense_date', 'company']
         labels = {
             'item': 'Przedmiot',
             'price': 'Cena',
             'quantity': 'Ilość',
             'category_id': 'Kategoria',
-            'date': 'Data',
+            'expense_date': 'Data',
             'company': 'Firma'
         }
         widgets = {
@@ -37,7 +37,7 @@ class ExpenseForm(forms.ModelForm):
                 'min': 1,
                 'max': 999 
             }),
-            'date': forms.DateInput(format='%Y-%m-%d', attrs={
+            'expense_date': forms.DateInput(format='%Y-%m-%d', attrs={
                 'type': 'date',
                 'class': 'form-control'
             }),

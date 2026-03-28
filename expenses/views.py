@@ -23,10 +23,10 @@ def index(request):
     two_years_ago = timezone.now() - datetime.timedelta(days=730)
 
     expenses_list = Expense.objects.filter(
-        date__gte=two_years_ago
+        expense_date__gte=two_years_ago
     ).annotate(
         total_price=F('quantity') * F('price')
-    ).order_by('-date')
+    ).order_by('-expense_date')
     
     paginator = Paginator(expenses_list, 10)
     page_number = request.GET.get('page')
@@ -103,8 +103,20 @@ def delete_expense(request, pk):
 
 def budget(request):
     budget = Budget.objects.all()
-    
-    return render(request, 'budget/index.html', {'budget': budget})
+    totals = budget.aggregate(
+        total_expected=Sum('expected_cost'),
+        total_actual=Sum('actual_cost'),
+    )
+    total_expected = totals['total_expected'] or Decimal('0.00')
+    total_actual = totals['total_actual'] or Decimal('0.00')
+    total_difference = total_expected - total_actual
+
+    return render(request, 'budget/index.html', {
+        'budget': budget,
+        'total_expected': total_expected,
+        'total_actual': total_actual,
+        'total_difference': total_difference,
+    })
 
 
 def new_budget(request):

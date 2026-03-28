@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
-{% block title %}Książki{% endblock %}
+{% block title %}Panel główny{% endblock %}
 
 {% block section_header %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
@@ -9,5 +10,207 @@
 {% endblock %}
 
 {% block content %}
-<div>Tu niebawem będą cuda na kiju</div>
+<!-- RZĄD 1: Główne statystyki finansowe (4 kafelki) -->
+<div class="row g-4 mb-4">
+    
+    <!-- Kafelek 1: Saldo -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase mb-2">Majątek</h6>
+                <h3 class="mb-0 text-success">{{ total_wealth|intcomma }} zł</h3>
+                <small class="text-success"><span class="fs-6">&uarr;</span> 5.2% od zeszłego miesiąca</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 2: Wydatki -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase mb-2">Wydatki (Bieżący miesiąc)</h6>
+                <h3 class="mb-0 text-danger">{{ current_month_expenses|intcomma }} zł</h3>
+                {% if overspent %}
+                    <small class="text-danger"><span class="fs-6">&darr;</span> Przekroczono budżet o {{ balance|intcomma }} zł</small>
+                {% else %}
+                    <small class="text-success"><span class="fs-6">&uarr;</span> Pozostało {{ balance|intcomma }} zł do końca miesiąca</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 3: Wpływy -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase mb-2">Przychody (Bieżący miesiąc)</h6>
+                <h3 class="mb-0 text-info">{{ current_month_income|intcomma }} zł</h3>
+                <small class="text-muted">Stała pensja + bonus</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 4: Oszczędności (Wykres słupkowy wbudowany w Bootstrap) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase mb-2">Cel oszczędnościowy</h6>
+                <h3 class="mb-2 text-warning">45 000 zł <span class="fs-6 text-muted">/ 100 000 zł</span></h3>
+                <div class="progress bg-secondary" style="height: 8px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- RZĄD 2: Główny wykres i paski kategorii (2 kafelki) -->
+<div class="row g-4 mb-4">
+    
+    <!-- Kafelek 5: Miejsce na duży wykres (np. Chart.js) -->
+    <div class="col-12 col-xl-8">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title border-bottom border-secondary pb-2 mb-3">Wydatki i Przychody w czasie</h5>
+                <!-- Miejsce (kontener) pod wygenerowanie wykresu JS -->
+                <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-25 rounded" style="height: 250px;">
+                    <div class="text-center text-muted">
+                        <span class="fs-1">📊</span><br>
+                        Miejsce na wykres liniowy<br>
+                        <small>(np. wygenerowany w Chart.js z danych Django)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 6: Rozbicie wydatków na paski -->
+    <div class="col-12 col-xl-4">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title border-bottom border-secondary pb-2 mb-3">Najdroższe kategorie</h5>
+                
+                <!-- Iterujemy po naszej liście przygotowanej w widoku -->
+                {% for item in top_categories %}
+                
+                    <!-- Jeśli to ostatni element, nie dajemy dolnego marginesu (mb-0 zamiast mb-3) -->
+                    <div class="{% if not forloop.last %}mb-3{% else %}mb-0{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <small>{{ item.category_name }}</small>
+                            <small>{{ item.cost|intcomma }}</small> 
+                        </div>
+                        <div class="progress bg-secondary mt-1" style="height: 6px;">
+                            <!-- Dynamicznie wstawiamy kolor i szerokość paska -->
+                            <div class="progress-bar bg-{{ item.color }}" 
+                                role="progressbar" 
+                                style="width: {{ item.bar_width }}%;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% empty %}
+                    <!-- Ten tekst pokaże się tylko, jeśli baza jest całkowicie pusta -->
+                    <p class="text-muted small text-center mt-4">Brak danych o wydatkach.</p>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RZĄD 3: Tabele i mniejsze wykresy listowe (3 kafelki) -->
+<div class="row g-4 mb-4">
+    
+    <!-- Kafelek 7: Ostatnie transakcje (Mini-tabelka) -->
+    <div class="col-12 col-lg-4">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 py-1">Ostatnie 3 wydatki</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush border-0">
+                    {% for expense in last_three_expenses %}
+                        <li class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block">{{ expense.item }}</span>
+                                <small class="text-muted">{{ expense.date }}</small>
+                            </div>
+                            <span class="text-danger fw-bold">- {{ expense.total_cost|intcomma }} zł</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 8: Stan miesięcznego budżetu -->
+    <div class="col-12 col-lg-4">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                <h5 class="card-title text-muted mb-4">Wykorzystanie budżetu</h5>
+                <!-- "Oszukany" okrągły wykres w czystym HTML/CSS -->
+                <div class="rounded-circle d-flex align-items-center justify-content-center border border-5 border-warning" style="width: 120px; height: 120px;">
+                    <div>
+                        <span class="fs-3 fw-bold">{{ used_budget_percentage }}%</span>
+                        <br>
+                        <small class="text-muted">Użyto</small>
+                    </div>
+                </div>
+                <p class="mt-4 mb-0 small text-muted">Pozostało <strong>{{ budget_amount_left|intcomma }} zł</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kafelek 9: Zbliżające się rachunki -->
+    <div class="col-12 col-lg-4">
+        <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 py-1">Ostatnie 3 wpływy</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush border-0">
+                    {% for income in last_three_incomes %}
+                        <li class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block">{{ income.source }}</span>
+                                <small class="text-muted">{{ income.date }}</small>
+                            </div>
+                            <span class="text-success fw-bold">+ {{ income.value|intcomma }} zł</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- RZĄD 4: Szybkie akcje (1 szeroki kafelek) -->
+<div class="row g-4 mb-4">
+    
+    <!-- Kafelek 10: Szybkie przyciski nawigacyjne -->
+    <div class="col-12">
+        <div class="card bg-dark text-light border-secondary shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Szybkie akcje</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#" class="btn btn-outline-success">
+                        <span class="fs-5">+</span> Dodaj wpływ
+                    </a>
+                    <a href="#" class="btn btn-outline-danger">
+                        <span class="fs-5">-</span> Dodaj wydatek
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        Generuj raport (PDF)
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary ms-auto">
+                        Ustawienia panelu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
