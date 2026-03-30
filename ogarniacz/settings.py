@@ -139,6 +139,9 @@ USE_THOUSAND_SEPARATOR = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'public', 'static')
+STATICFILES_DIRS =[
+    os.path.join(BASE_DIR, 'static'),
+]
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'login'
