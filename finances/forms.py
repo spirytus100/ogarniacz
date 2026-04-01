@@ -103,24 +103,21 @@ class InvestmentForm(forms.ModelForm):
 
 class IncomeForm(forms.ModelForm):
 
-    category_id = forms.ModelChoiceField(
-        queryset=IncomeCategory.objects.all(),
-        label='Kategoria',
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-
     class Meta:
         model = Income
-        fields = ['name', 'category_id', 'date', 'value']
+        fields = ['name', 'category', 'date', 'value']
         labels = {
             'name': 'Nazwa',
-            'category_id': 'Kategoria',
+            'category': 'Kategoria',
             'date': 'Data',
             'value': 'Wartość',
         }
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'date': forms.DateInput(format='%Y-%m-%d', attrs={
                 'type': 'date',

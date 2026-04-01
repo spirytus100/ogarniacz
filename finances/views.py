@@ -148,7 +148,7 @@ def edit_income(request, pk):
 
         if form.is_valid():
             income = form.save()
-            return redirect('incomes', pk=income.id)
+            return redirect('income_details', pk=income.id)
         else:
             add_errors_to_messages(request, form)
         
