@@ -291,7 +291,7 @@ def edit_wish(request, pk):
 
         if form.is_valid():
             wish = form.save()
-            return redirect('expenses:wishes', pk=wish.id)
+            return redirect('expenses:wish_details', pk=wish.id)
         else:
             add_errors_to_messages(request, form)
         
