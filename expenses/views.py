@@ -42,12 +42,19 @@ def expense_details(request, pk):
 
 def edit_expense(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
+    old_price = expense.price
+    category = expense.category_id
 
     if request.method == 'POST':
         form = ExpenseForm(request.POST, instance=expense)
 
         if form.is_valid():
             expense = form.save()
+
+            budget_row = Budget.objects.get(category_id=category)
+            budget_row.actual_cost = F('actual_cost') - old_price + expense.price
+            budget_row.save()
+            
             return redirect('expenses:details', pk=expense.id)
         else:
             add_errors_to_messages(request, form)
