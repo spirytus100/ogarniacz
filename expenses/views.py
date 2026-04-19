@@ -102,7 +102,7 @@ def delete_expense(request, pk):
 # Budżet
 
 def budget(request):
-    budget = Budget.objects.all()
+    budget = Budget.objects.exclude(expected_cost=0, actual_cost=0).order_by('category_id')
     totals = budget.aggregate(
         total_expected=Sum('expected_cost'),
         total_actual=Sum('actual_cost'),
