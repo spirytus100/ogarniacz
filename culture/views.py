@@ -21,7 +21,7 @@ def add_errors_to_messages(request, form):
 # FILMY
 
 def movies_list(request):
-    movies_list = Movie.objects.all().order_by("-id")
+    movies_list = Movie.objects.all().order_by("-watch_date")
     paginator = Paginator(movies_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
