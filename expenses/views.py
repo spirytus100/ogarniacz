@@ -181,12 +181,7 @@ def new_budget(request):
                 
                 # 3. ZAPISUJEMY WIERSZ W BAZIE (lub aktualizujemy istniejący)
                 Budget.objects.update_or_create(
-                    category_id=cat.id, # Klucz wyszukiwania
-                    
-                    # Jeśli Twój budżet przypisany jest do konkretnego użytkownika,
-                    # KONIECZNIE musisz to uwzględnić tutaj, żeby nie nadpisać budżetu kogoś innego!
-                    # user=request.user, 
-                    
+                    category_id=cat,  # Teraz przypisujemy instancję, nie ID
                     defaults={
                         'expected_cost': expected,
                         # actual_cost i comment zostają nietknięte lub domyślne,
