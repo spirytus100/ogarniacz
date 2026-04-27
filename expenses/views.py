@@ -184,6 +184,8 @@ def new_budget(request):
                     category_id=cat,  # Teraz przypisujemy instancję, nie ID
                     defaults={
                         'expected_cost': expected,
+                        'actual_cost': 0.00,
+                        'comment': '-',
                         # actual_cost i comment zostają nietknięte lub domyślne,
                         # created_at/updated_at obsługują się same
                     }
