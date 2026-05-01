@@ -1,7 +1,11 @@
 import datetime
+import json
 
 from django.shortcuts import render
-from django.db.models import Sum, F
+from django.db.models import Sum, F, DecimalField
+from django.db.models.functions import Cast
+from django.utils import timezone
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from finances.models import Investment, Cash, Crypto, ExchangeRate, Income
@@ -14,8 +18,8 @@ def get_total_wealth():
         active=True
     ).aggregate(
         total_value=Sum(
-            F('buy_quantity') * F('buy_price') - F('buy_commission'),
-            default=0
+            Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') - F('buy_commission'),
+            output_field=DecimalField(max_digits=10, decimal_places=2)
         )
     )
 
@@ -37,7 +41,8 @@ def get_current_month_expenses():
         expense_date__month=today.month    # Filtrujemy po obecnym miesiącu
     ).aggregate(
         total_spent=Sum(
-            F('quantity') * F('price'), # Zgodnie z Twoim modelem
+            Cast(F('quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('price'),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
             default=0                   # Zabezpieczenie przed błędem w przypadku braku wydatków
         )
     )
@@ -144,6 +149,66 @@ def get_last_three_incomes():
     return incomes
 
 
+def dashboard_chart_view():
+    today = timezone.now().date()
+    
+    # 1. Generujemy listę 6 ostatnich miesięcy (od najstarszego do obecnego)
+    months_list =[]
+    for i in range(6):
+        month = today.month - i
+        year = today.year
+        if month <= 0:
+            month += 12
+            year -= 1
+        # Dodajemy na początek listy, aby wykres szedł chronologicznie (od lewej do prawej)
+        months_list.insert(0, (year, month))
+        
+    # Wyznaczamy datę początkową do filtrowania zapytań
+    start_date = datetime.date(months_list[0][0], months_list[0][1], 1)
+    
+    # 2. Pobieramy zgrupowane po miesiącach sumy z bazy danych
+    expenses = Expense.objects.filter(expense_date__gte=start_date)\
+        .annotate(month=TruncMonth('expense_date'))\
+        .values('month')\
+        .annotate(total=Sum(Cast(F('price'), output_field=DecimalField(max_digits=10, decimal_places=2)) * Cast(F('quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)), output_field=DecimalField(max_digits=10, decimal_places=2)))
+        
+    incomes = Income.objects.filter(date__gte=start_date)\
+        .annotate(month=TruncMonth('date'))\
+        .values('month')\
+        .annotate(total=Sum('value'))
+        
+    # 3. Mapujemy wyniki do słowników, gdzie kluczem jest 'YYYY-MM'
+    # Pozwoli to łatwo odszukać kwotę dla konkretnego miesiąca
+    expense_dict = {f"{item['month'].year}-{item['month'].month:02d}": item['total'] for item in expenses}
+    income_dict = {f"{item['month'].year}-{item['month'].month:02d}": item['total'] for item in incomes}
+    
+    # 4. Przygotowujemy dane do Chart.js
+    labels = []
+    expense_data =[]
+    income_data = []
+    
+    # Krótkie nazwy miesięcy do wyświetlenia na osi X
+    month_names =["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"]
+    
+    for year, month in months_list:
+        key = f"{year}-{month:02d}"
+        labels.append(f"{month_names[month-1]} {year}")
+        
+        # Pobieramy wartość ze słownika lub 0 jeśli w danym miesiącu nic nie było
+        # Rzutujemy na float, ponieważ Decimal z Django nie jest domyślnie serializowalny do JSON
+        expense_data.append(float(expense_dict.get(key, 0)))
+        income_data.append(float(income_dict.get(key, 0)))
+
+    # 5. Przekazujemy zserializowane dane do szablonu
+    context = {
+        'labels': json.dumps(labels),
+        'expense_data': json.dumps(expense_data),
+        'income_data': json.dumps(income_data),
+    }
+    
+    return context
+
+
 
 def index(request):
     total_wealth = get_total_wealth()
@@ -159,6 +224,7 @@ def index(request):
     budget_amount_left, used_budget_percentage = get_used_budget_amounts()
     last_three_expenses = get_last_three_expenses()
     last_three_incomes = get_last_three_incomes()
+    chart_context = dashboard_chart_view()
 
 
     return render(request, "dashboard/index.html", {
@@ -172,4 +238,5 @@ def index(request):
         "last_three_expenses": last_three_expenses,
         "last_three_incomes": last_three_incomes,
         "budget_amount_left": budget_amount_left,
+        "chart_context": chart_context,
     })

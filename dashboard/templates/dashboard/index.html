@@ -74,12 +74,9 @@
             <div class="card-body">
                 <h5 class="card-title border-bottom border-secondary pb-2 mb-3">Wydatki i Przychody w czasie</h5>
                 <!-- Miejsce (kontener) pod wygenerowanie wykresu JS -->
-                <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-25 rounded" style="height: 250px;">
-                    <div class="text-center text-muted">
-                        <span class="fs-1">📊</span><br>
-                        Miejsce na wykres liniowy<br>
-                        <small>(np. wygenerowany w Chart.js z danych Django)</small>
-                    </div>
+                <div class="chart-container">
+                    <!-- Canvas to element, na którym Chart.js narysuje wykres -->
+                    <canvas id="financeChart"></canvas>
                 </div>
             </div>
         </div>
@@ -213,4 +210,66 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+        // Odbieramy dane przekazane z widoku Django
+        const labels = {{ chart_context.labels|safe }};
+        const expenseData = {{ chart_context.expense_data|safe }};
+        const incomeData = {{ chart_context.income_data|safe }};
+
+        // Konfiguracja i inicjalizacja wykresu
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        const financeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets:[
+                    {
+                        label: 'Przychody',
+                        data: incomeData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',  // Kolor wypełnienia (zielonkawy)
+                        borderColor: 'rgba(75, 192, 192, 1)',      // Kolor obramowania
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Wydatki',
+                        data: expenseData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)', // Kolor wypełnienia (czerwonawy)
+                        borderColor: 'rgba(255, 99, 132, 1)',     // Kolor obramowania
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Przychody vs Wydatki (ostatnie 6 miesięcy)'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                // Dodajemy walutę do tooltipów
+                                return context.dataset.label + ': ' + context.parsed.y + ' zł';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Kwota (zł)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}
