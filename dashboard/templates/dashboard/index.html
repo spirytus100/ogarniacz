@@ -192,17 +192,11 @@
             <div class="card-body">
                 <h5 class="card-title mb-3">Szybkie akcje</h5>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="#" class="btn btn-outline-success">
+                    <a href="/finances/incomes/new" class="btn btn-outline-success">
                         <span class="fs-5">+</span> Dodaj wpływ
                     </a>
-                    <a href="#" class="btn btn-outline-danger">
+                    <a href="/expenses/new" class="btn btn-outline-danger">
                         <span class="fs-5">-</span> Dodaj wydatek
-                    </a>
-                    <a href="#" class="btn btn-outline-primary">
-                        Generuj raport (PDF)
-                    </a>
-                    <a href="#" class="btn btn-outline-secondary ms-auto">
-                        Ustawienia panelu
                     </a>
                 </div>
             </div>
@@ -218,6 +212,12 @@
         const labels = {{ chart_context.labels|safe }};
         const expenseData = {{ chart_context.expense_data|safe }};
         const incomeData = {{ chart_context.income_data|safe }};
+
+        // Ustawienie jasnego koloru dla wszystkich tekstów (osie, legenda, tytuł)
+        Chart.defaults.color = '#e0e0e0'; 
+
+        // Ustawienie jasnych, delikatnych linii siatki i obramowań
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)'; 
 
         // Konfiguracja i inicjalizacja wykresu
         const ctx = document.getElementById('financeChart').getContext('2d');

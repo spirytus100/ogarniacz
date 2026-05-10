@@ -154,7 +154,7 @@ def dashboard_chart_view():
     
     # 1. Generujemy listę 6 ostatnich miesięcy (od najstarszego do obecnego)
     months_list =[]
-    for i in range(6):
+    for i in range(12):
         month = today.month - i
         year = today.year
         if month <= 0:
