@@ -90,6 +90,7 @@ class ExchangeRate(models.Model):
 
 
 class WealthChange(models.Model):
+    date = models.DateField(default=datetime.date.today)
     value = models.DecimalField(max_digits=7, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
