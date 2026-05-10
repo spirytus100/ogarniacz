@@ -19,7 +19,11 @@
             <div class="card-body">
                 <h6 class="card-title text-muted text-uppercase mb-2">Majątek</h6>
                 <h3 class="mb-0 text-success">{{ total_wealth|intcomma }} zł</h3>
-                <small class="text-success"><span class="fs-6">&uarr;</span> 5.2% od zeszłego miesiąca</small>
+                {% if wealth_change.plus %}
+                    <small class="text-success"><span class="fs-6">&uarr;</span> {{ wealth_change.percentage|floatformat:2 }}% od zeszłego miesiąca</small>
+                {% else %}
+                    <small class="text-danger"><span class="fs-6">&darr;</span> {{ wealth_change.percentage|floatformat:2 }}% od zeszłego miesiąca</small>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -45,7 +49,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted text-uppercase mb-2">Przychody (Bieżący miesiąc)</h6>
                 <h3 class="mb-0 text-info">{{ current_month_income|intcomma }} zł</h3>
-                <small class="text-muted">Stała pensja + bonus</small>
+                <small class="text-muted">Pensja + odsetki od kapitału</small>
             </div>
         </div>
     </div>

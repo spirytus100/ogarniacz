@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
-from finances.models import Investment, Cash, Crypto, ExchangeRate, Income
+from finances.models import Investment, Cash, Crypto, ExchangeRate, Income, WealthChange
 from expenses.models import Expense, Budget
 
 
@@ -209,6 +209,26 @@ def dashboard_chart_view():
     return context
 
 
+def calculate_wealth_change():
+    # Pobieramy ostatnią zmianę majątku
+    last_change = WealthChange.objects.order_by('-date').first()
+    
+    # Obliczamy aktualną wartość majątku
+    current_wealth = get_total_wealth()
+    
+    if last_change:
+        change_amount = current_wealth - last_change.value
+        plus = True if change_amount > 0 else False
+        change_percentage = (change_amount / last_change.value) * 100 if last_change.value != 0 else 0
+    else:
+        change_amount = 0
+        change_percentage = 0
+    
+    return {
+        'percentage': change_percentage,
+        'plus': plus
+    }
+
 
 def index(request):
     total_wealth = get_total_wealth()
@@ -225,6 +245,7 @@ def index(request):
     last_three_expenses = get_last_three_expenses()
     last_three_incomes = get_last_three_incomes()
     chart_context = dashboard_chart_view()
+    wealth_change = calculate_wealth_change()
 
 
     return render(request, "dashboard/index.html", {
@@ -239,4 +260,5 @@ def index(request):
         "last_three_incomes": last_three_incomes,
         "budget_amount_left": budget_amount_left,
         "chart_context": chart_context,
+        "wealth_change": wealth_change,
     })
