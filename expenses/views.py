@@ -88,7 +88,7 @@ def new_expense(request):
             add_errors_to_messages(request, form)
         
     else:
-        form = ExpenseForm()
+        form = ExpenseForm(initial={'quantity': 1})
 
     return render(request, 'expenses/new.html', {'form': form})
 
