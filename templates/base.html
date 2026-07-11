@@ -59,7 +59,30 @@
             <div class="navbar-nav w-100 d-none d-md-block">
                 <div class="nav-item text-nowrap text-end px-3">
                     {% if user.is_authenticated %}
-                        <span class="text-muted small me-3">Witaj, {{ user.username }}!</span>
+                        <!-- Kontener Dropdown (rozwijane menu) -->
+                        <div class="dropdown d-inline-block me-3">
+                            
+                            <!-- Klikalny tekst (Toggle) -->
+                            <a href="#" class="text-muted small text-decoration-none dropdown-toggle" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                                Witaj, {{ user.username }}!
+                            </a>
+                            
+                            <!-- Zawartość rozwijanego menu -->
+                            <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="userMenu">
+                                <li>
+                                    <!-- Zastosowanie formularza z metodą POST (wymagane w nowszych wersjach Django) -->
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Wyloguj
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                            
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Zaloguj</a>
                     {% endif %}
                 </div>
             </div>
@@ -96,6 +119,12 @@
                             <a class="nav-link" href="/life/tasks/">
                                 <i class="bi bi-check2 me-2"></i>
                                 Do zrobienia
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link" href="/life/activities/">
+                                <i class="bi bi-calendar me-2"></i>
+                                Produktywność
                             </a>
                         </li>
                         <li class="nav-item mb-2">

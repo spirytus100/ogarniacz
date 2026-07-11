@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Task
+from .models import Task, Activity
 
 
 
@@ -31,3 +31,28 @@ class TaskForm(forms.ModelForm):
                 'class': 'form-control'
             }),
         }
+
+
+class ActivityForm(forms.ModelForm):
+    class Meta:
+        model = Activity
+        fields = ['name', 'date', 'duration']
+        labels = {
+            'name': 'Kategoria aktywności',
+            'date': 'Data',
+            'duration': 'Czas trwania (minuty)',
+        }
+        widgets = {
+            'name': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'date': forms.DateInput(format='%Y-%m-%d', attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'duration': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1
+            }),
+        }
+

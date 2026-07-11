@@ -1,11 +1,11 @@
 {% extends 'list.html' %}
 
-{% block title %}Zadania{% endblock %}
+{% block title %}Aktywność{% endblock %}
 
 {% block section_header %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-    <h1 class="h2">Lista zadań</h1>
-    <a href="{% url 'new_task' %}" class="btn btn-success btn-sm">Nowe zadanie</a>
+    <h1 class="h2">Lista aktywności</h1>
+    <a href="{% url 'new_activity' %}" class="btn btn-success btn-sm">Nowa aktywność</a>
 </div>
 {% endblock %}
 
@@ -16,16 +16,16 @@
         <thead>
             <tr>
             <th scope="col">Nazwa</th>
-            <th scope="col">Priorytet</th>
-            <th scope="col">Data ukończenia</th>
+            <th scope="col">Data</th>
+            <th scope="col">Czas trwania</th>
             </tr>
         </thead>
         <tbody>
-            {% for task in page_obj %}
+            {% for activity in page_obj %}
                 <tr>
-                    <td><a href="{% url 'task_details' pk=task.id %}">{{ task.name }}</a></td>
-                    <td>{{ task.get_priority_display }}</td>
-                    <td>{{ task.completion_date|default:"-" }}</td>
+                    <td><a href="{% url 'activity_details' pk=activity.id %}">{{ activity.name }}</a></td>
+                    <td>{{ activity.date }}</td>
+                    <td>{{ activity.duration }}</td>
                 </tr>
             {% endfor %}
         </tbody>
