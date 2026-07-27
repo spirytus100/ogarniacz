@@ -15,4 +15,5 @@ urlpatterns = [
     path("activities/<int:pk>/delete/", views.delete_activity, name="delete_activity"),
     path("activities/<int:pk>/", views.activity_details, name="activity_details"),
     path("activities/<int:pk>/edit/", views.edit_activity, name="edit_activity"),
+    path("activities/dashboard/", views.activity_dashboard, name="activity_dashboard"),
 ]
