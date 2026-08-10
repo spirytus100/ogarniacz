@@ -18,7 +18,7 @@
         <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
             <div class="card-body">
                 <h6 class="card-title text-muted text-uppercase mb-2">Majątek</h6>
-                <h3 class="mb-0 text-success">{{ total_wealth|intcomma }} zł</h3>
+                <h3 class="mb-0 text-success">{{ total_wealth|floatformat:2|intcomma }} zł</h3>
                 {% if wealth_change.plus %}
                     <small class="text-success"><span class="fs-6">&uarr;</span> {{ wealth_change.percentage|floatformat:2 }}% od zeszłego miesiąca</small>
                 {% else %}
@@ -33,11 +33,11 @@
         <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
             <div class="card-body">
                 <h6 class="card-title text-muted text-uppercase mb-2">Wydatki (Bieżący miesiąc)</h6>
-                <h3 class="mb-0 text-danger">{{ current_month_expenses|intcomma }} zł</h3>
+                <h3 class="mb-0 text-danger">{{ current_month_expenses|floatformat:2|intcomma }} zł</h3>
                 {% if overspent %}
-                    <small class="text-danger"><span class="fs-6">&darr;</span> Przekroczono budżet o {{ balance|intcomma }} zł</small>
+                    <small class="text-danger"><span class="fs-6">&darr;</span> Przekroczono budżet o {{ balance|floatformat:2|intcomma }} zł</small>
                 {% else %}
-                    <small class="text-success"><span class="fs-6">&uarr;</span> Pozostało {{ balance|intcomma }} zł do końca miesiąca</small>
+                    <small class="text-success"><span class="fs-6">&uarr;</span> Pozostało {{ balance|floatformat:2|intcomma }} zł do końca miesiąca</small>
                 {% endif %}
             </div>
         </div>
@@ -48,7 +48,7 @@
         <div class="card bg-dark text-light border-secondary h-100 shadow-sm">
             <div class="card-body">
                 <h6 class="card-title text-muted text-uppercase mb-2">Przychody (Bieżący miesiąc)</h6>
-                <h3 class="mb-0 text-info">{{ current_month_income|intcomma }} zł</h3>
+                <h3 class="mb-0 text-info">{{ current_month_income|floatformat:2|intcomma }} zł</h3>
                 <small class="text-muted">Pensja + odsetki od kapitału</small>
             </div>
         </div>

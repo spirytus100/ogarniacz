@@ -32,13 +32,14 @@
                     <td><a href="{% url 'investment_details' pk=investment.id %}">{{ investment.name }}</a></td>
                     <td>{{ investment.category_id }}</td>
                     <td>{{ investment.buy_date }}</td>
-                    <td>{{ investment.buy_total }}</td>
+                    <td>{{ investment.buy_total|floatformat:2|default:"-" }} zł</td>
                     <td>
                         {% if investment.current_price and investment.buy_total %}
                             {{ investment.current_profit|floatformat:2|default:"-" }} ({% widthratio investment.current_profit investment.buy_total 100 %}% )
                         {% endif %}
+                    </td>
                     <td>{{ investment.sell_date|default:"-" }}</td>
-                    <td>{{ investment.sell_total|default:"-" }}</td>
+                    <td>{{ investment.sell_total|floatformat:2|default:"-" }} zł</td>
                     <td>
                         {% if investment.buy_total and investment.sell_total %}
                             {{ investment.profit|floatformat:2|default:"-" }} ({% widthratio investment.profit investment.buy_total 100 %}% )

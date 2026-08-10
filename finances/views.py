@@ -2,9 +2,10 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F, Subquery, OuterRef, DecimalField, ExpressionWrapper
+from django.db.models.functions import Coalesce
 
-from .models import Investment, Income, Cash
+from .models import Investment, Income, Cash, ExchangeRate
 
 from .forms import InvestmentForm, IncomeForm, CashForm
 
@@ -25,23 +26,56 @@ def index(request):
 
 
 def list_of_investments(request):
-    expenses_list = Investment.objects.filter(active=True).annotate(
-        buy_total=F('buy_quantity') * F('buy_price') + F('buy_commission'),
-        sell_total=F('sell_quantity') * F('sell_price') - F('sell_commission'),
-        current_profit=F('current_price') * F('buy_quantity') - F('buy_total')
+    # 1. Przygotowujemy podzapytanie, które wyciągnie kurs dla waluty danej inwestycji.
+    # Zakładam, że w modelu Investment masz pole 'currency'.
+    # Bierzemy najnowszy kurs (order_by('-updated_at')).
+    exchange_rate_subquery = ExchangeRate.objects.filter(
+        currency=OuterRef('currency')
+    ).order_by('-updated_at').values('rate')[:1]
+
+    # 2. Główny Queryset
+    investments_list = Investment.objects.filter(active=True).annotate(
+        # Pobieramy kurs waluty do każdej inwestycji (jeśli brak kursu, używamy 1.0)
+        current_exchange_rate=Coalesce(
+            Subquery(exchange_rate_subquery, output_field=DecimalField()),
+            1.0, # wartość domyślna
+            output_field=DecimalField()
+        )
+    ).annotate(
+        # Obliczamy wartości bazowe
+        raw_buy_total=F('buy_quantity') * F('buy_price') + F('buy_commission'),
+        raw_sell_total=F('sell_quantity') * F('sell_price') - F('sell_commission'),
+    ).annotate(
+        # Przemnażamy przez kurs waluty
+        buy_total=ExpressionWrapper(
+            F('raw_buy_total') * F('current_exchange_rate') + F('buy_commission'),
+            output_field=DecimalField()
+        ),
+        sell_total=ExpressionWrapper(
+            F('raw_sell_total') * F('current_exchange_rate') + F('sell_commission'),
+            output_field=DecimalField()
+        ),
+        # Obliczamy zysk na podstawie przeliczonych wartości
+        current_profit=ExpressionWrapper(
+            (F('current_price') * F('buy_quantity') * F('current_exchange_rate')) - 
+            (F('raw_buy_total') * F('current_exchange_rate')),
+            output_field=DecimalField()
+        )
     ).annotate(
         profit=F('sell_total') - F('buy_total')
     ).order_by('-created_at')
 
-    paginator = Paginator(expenses_list, 10)
+    # Paginacja pozostaje bez zmian
+    paginator = Paginator(investments_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
     context = {'page_obj': page_obj}
     return render(request, "investments/investment_list.html", context)
 
 
 def retirement_investments(request):
-    expenses_list = Investment.objects.filter(retirement=True, active=True).annotate(
+    retirement_investments_list = Investment.objects.filter(retirement=True, active=True).annotate(
         buy_total=F('buy_quantity') * F('buy_price') + F('buy_commission'),
         sell_total=F('sell_quantity') * F('sell_price') - F('sell_commission'),
         current_profit=F('current_price') * F('buy_quantity') - F('buy_total')
@@ -49,7 +83,7 @@ def retirement_investments(request):
         profit=F('sell_total') - F('buy_total')
     ).order_by('-created_at')
 
-    paginator = Paginator(expenses_list, 10)
+    paginator = Paginator(retirement_investments_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'page_obj': page_obj}

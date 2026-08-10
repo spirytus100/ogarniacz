@@ -2,7 +2,8 @@ import datetime
 import json
 
 from django.shortcuts import render
-from django.db.models import Sum, F, DecimalField
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Subquery, OuterRef
+from django.db.models.functions import Coalesce
 from django.db.models.functions import Cast
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
@@ -14,12 +15,30 @@ from expenses.models import Expense, Budget
 
 
 def get_total_wealth():
+    # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
+    exchange_rate_subquery = ExchangeRate.objects.filter(
+        currency=OuterRef('currency')
+    ).order_by('-updated_at').values('rate')[:1]
+
+    # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
     result = Investment.objects.filter(
         active=True
+    ).annotate(
+        # Przypisujemy kurs do każdego wiersza (jeśli brak, domyślnie 1.0)
+        current_exchange_rate=Coalesce(
+            Subquery(exchange_rate_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            1.0,
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
     ).aggregate(
         total_value=Sum(
-            Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') - F('buy_commission'),
-            output_field=DecimalField(max_digits=10, decimal_places=2)
+            ExpressionWrapper(
+                (
+                    Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') 
+                    - F('buy_commission')
+                ) * F('current_exchange_rate'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
         )
     )
 
