@@ -152,6 +152,13 @@ def activity_dashboard(request):
         'criticism': 0,
     }
 
+    descriptions = {
+        'russian': '',
+        'reading': '',
+        'writing': '',
+        'criticism': '',
+    }
+
     # Mapowanie nazw kategorii z bazy na klucze w słowniku
     # Dopasuj stringi do tego, jak dokładnie nazywają się w bazie!
     category_mapping = {
@@ -171,9 +178,11 @@ def activity_dashboard(request):
     for goal in active_goals:
         # Zakładam, że kategoria ma pole tekstowe, które przechowuje nazwę (np. kategoria.name)
         category_name = goal.activity.name  
-        
+     
         if category_name in category_mapping:
             dict_key = category_mapping[category_name]
+
+            descriptions[dict_key] = goal.description
             
             # Sumujemy czas trwania aktywności z danego okresu
             # Uwaga: w Twoim modelu Activity klucz obcy nazywa się 'name' (zamiast np. category)
@@ -202,6 +211,10 @@ def activity_dashboard(request):
         'progress_reading': progress_data['reading'],
         'progress_writing': progress_data['writing'],
         'progress_criticism': progress_data['criticism'],
+        'description_russian': descriptions['russian'],
+        'description_reading': descriptions['reading'],
+        'description_writing': descriptions['writing'],
+        'description_criticism': descriptions['criticism'],
         'streak': streak,
         'streak_active': streak_active,
 

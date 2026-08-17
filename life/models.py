@@ -40,6 +40,7 @@ class Activity(models.Model):
 class ActivityGoal(models.Model):
     activity = models.ForeignKey(ActivityCategory, on_delete=models.CASCADE)
     goal_duration = models.PositiveIntegerField(help_text="Celowany czas trwania w minutach")
+    description = models.TextField(blank=True, null=True, max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
 
