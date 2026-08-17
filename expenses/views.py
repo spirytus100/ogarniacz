@@ -44,6 +44,8 @@ def expense_details(request, pk):
 def edit_expense(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
     old_price = expense.price
+    old_quantity = expense.quantity
+    old_total_price = old_price * old_quantity
     category = expense.category_id
 
     if request.method == 'POST':
@@ -53,7 +55,7 @@ def edit_expense(request, pk):
             expense = form.save()
 
             budget_row = Budget.objects.get(category_id=category)
-            budget_row.actual_cost = F('actual_cost') - old_price + expense.price
+            budget_row.actual_cost = F('actual_cost') - old_total_price + (expense.price * expense.quantity)
             budget_row.save()
             
             return redirect('expenses:details', pk=expense.id)
@@ -73,11 +75,11 @@ def new_expense(request):
         if form.is_valid():
             expense = form.save()
 
-            price = expense.price
+            total_price = expense.price * expense.quantity
             category = expense.category_id
 
             budget_row = Budget.objects.get(category_id=category)
-            budget_row.actual_cost = F('actual_cost') + price
+            budget_row.actual_cost = F('actual_cost') + total_price
             budget_row.save()
 
             messages.success(request, "Wydatek został dodany. Budżet został zaktualizowany")
