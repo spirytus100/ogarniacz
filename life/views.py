@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Sum
+from constance import config
 
 from .models import Task, Activity, ActivityGoal
 from .forms import TaskForm, ActivityForm
@@ -217,8 +218,9 @@ def activity_dashboard(request):
         'description_criticism': descriptions['criticism'],
         'streak': streak,
         'streak_active': streak_active,
-
         'recent_activities': recent_activities,
+        'current_daily_word': config.CURRENT_DAILY_WORD.title() if config.CURRENT_DAILY_WORD else '',
+        'current_daily_word_description': config.CURRENT_DAILY_WORD_DESCRIPTION,
     }
     
     return render(request, 'activities/dashboard.html', context)

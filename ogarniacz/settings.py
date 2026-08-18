@@ -38,6 +38,8 @@ ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.s
 # Application definition
 
 INSTALLED_APPS = [
+    'constance',
+    'constance.backends.database',
     'life.apps.LifeConfig',
     'culture.apps.CultureConfig',
     'finances.apps.FinancesConfig',
@@ -148,3 +150,9 @@ LOGOUT_REDIRECT_URL = 'login'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_CONFIG = {
+    'CURRENT_DAILY_WORD': ('', 'Current daily word'),
+    'CURRENT_DAILY_WORD_DESCRIPTION': ('', 'Current daily word description'),
+}
