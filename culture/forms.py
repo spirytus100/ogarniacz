@@ -1,5 +1,5 @@
 from django import forms
-from .models import Book, Movie, MovieGenre
+from .models import Book, Movie, MovieGenre, BookProposition, MovieProposition
 
 
 
@@ -84,5 +84,58 @@ class BookForm(forms.ModelForm):
                 'class': 'form-control',
                 'min': 1,
                 'max': 3000
+            }),
+        }
+
+
+class MoviePropositionForm(forms.ModelForm):
+
+    genre_id = forms.ModelChoiceField(
+        queryset=MovieGenre.objects.all(),
+        label='Gatunek filmu',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    class Meta:
+        model = MovieProposition
+        fields = ['title', 'production_year', 'genre_id']
+        labels = {
+            'title': 'Tytuł',
+            'production_year': 'Rok produkcji',
+            'genre_id': 'Gatunek'
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'production_year': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1900,
+                'max': 2099 
+            }),
+        }
+
+
+class BookPropositionForm(forms.ModelForm):
+
+    class Meta:
+        model = BookProposition
+        fields = ['author', 'title', 'published_year']
+        labels = {
+            'author': 'Autor',
+            'title': 'Tytuł',
+            'published_year': 'Rok publikacji'
+        }
+        widgets = {
+            'author': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'published_year': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1500,
+                'max': 2099 
             }),
         }

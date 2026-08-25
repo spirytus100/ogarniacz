@@ -15,4 +15,9 @@ urlpatterns = [
     path("books/<int:pk>/edit", views.edit_book, name="edit_book"),
     path("books/new", views.new_book, name="new_book"),
     path("books/<int:pk>/delete", views.delete_book, name="delete_book"),
+    path("propositions/", views.propositions_dashboard, name="propositions_dashboard"),
+    path("propositions/movies/new", views.new_movie_proposition, name="new_movie_proposition"),
+    path("propositions/books/new", views.new_book_proposition, name="new_book_proposition"),
+    path("propositions/movies/<int:pk>/delete", views.delete_movie_proposition, name="delete_movie_proposition"),
+    path("propositions/books/<int:pk>/delete", views.delete_book_proposition, name="delete_book_proposition"),
 ]

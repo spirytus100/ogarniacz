@@ -38,11 +38,12 @@ class Book(models.Model):
 
     def __str__(self):
         return ", ".join((self.author, self.title))
-    
 
-class MovieSuggestion(models.Model):
+
+class MovieProposition(models.Model):
     title = models.CharField(max_length=200, unique=True)
     genre_id = models.ForeignKey(MovieGenre, null=True, on_delete=models.SET_NULL)
+    production_year = models.SmallIntegerField(validators=[MinValueValidator(1900), MaxValueValidator(2100)], null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,9 +51,10 @@ class MovieSuggestion(models.Model):
         return self.title
 
 
-class BookSuggestion(models.Model):
+class BookProposition(models.Model):
     author = models.CharField(max_length=100, blank=True)
     title = models.CharField(max_length=200, unique=True)
+    published_year = models.SmallIntegerField(validators=[MinValueValidator(1500), MaxValueValidator(2100)], null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -1,10 +1,12 @@
+import datetime
+
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 
-from .models import Movie, Book
-from .forms import MovieForm, BookForm
+from .models import Movie, Book, MovieProposition, BookProposition
+from .forms import MovieForm, BookForm, MoviePropositionForm, BookPropositionForm
 
 
 
@@ -146,4 +148,78 @@ def delete_book(request, pk):
     # wyświetlamy stronę z prośbą o potwierdzenie
     context = {'book': book}
     return render(request, 'books/confirm_delete.html', context)
+
+
+# PROPOZYCJE    
+
+def propositions_dashboard(request):
+    movies_to_watch = MovieProposition.objects.all().order_by("-created_at")[:10]
+    books_to_read = BookProposition.objects.all().order_by("-created_at")[:10]
+    total_movies_to_watch = MovieProposition.objects.count()
+    total_books_to_read = BookProposition.objects.count()
+    watched_this_year = Movie.objects.filter(watch_date__year=datetime.datetime.now().year).count()
+    read_this_year = Book.objects.filter(date_finished__year=datetime.datetime.now().year).count()
+    context = {
+        'movies_to_watch': movies_to_watch,
+        'books_to_read': books_to_read,
+        'watched_this_year': watched_this_year,
+        'read_this_year': read_this_year,
+        'total_movies_to_watch': total_movies_to_watch,
+        'total_books_to_read': total_books_to_read,
+    }
+    return render(request, 'propositions/index.html', context)
+
+
+def new_movie_proposition(request):
+    if request.method == 'POST':
+        form = MoviePropositionForm(request.POST)
+
+        if form.is_valid():
+            movie_proposition = form.save()
+            return redirect('propositions_dashboard')
+        else:
+            add_errors_to_messages(request, form)
+        
+    else:
+        form = MoviePropositionForm()
+
+    return render(request, 'propositions/new_movie_proposition.html', {'form': form})
+
+
+def new_book_proposition(request):
+    if request.method == 'POST':
+        form = BookPropositionForm(request.POST)
+
+        if form.is_valid():
+            book_proposition = form.save()
+            return redirect('propositions_dashboard')
+        else:
+            add_errors_to_messages(request, form)
+        
+    else:
+        form = BookPropositionForm()
+
+    return render(request, 'propositions/new_book_proposition.html', {'form': form})
+
+
+def delete_movie_proposition(request, pk):
+    movie_proposition = get_object_or_404(MovieProposition, pk=pk)
+    
+    if request.method == "POST":
+        movie_proposition.delete()
+        return redirect('propositions_dashboard')
+        
+    context = {'movie_proposition': movie_proposition}
+    return render(request, 'propositions/confirm_delete_movie.html', context)
+
+
+def delete_book_proposition(request, pk):
+    book_proposition = get_object_or_404(BookProposition, pk=pk)
+    
+    if request.method == "POST":
+        book_proposition.delete()
+        return redirect('propositions_dashboard')
+        
+    context = {'book_proposition': book_proposition}
+    return render(request, 'propositions/confirm_delete_book.html', context)
 

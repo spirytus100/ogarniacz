@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Propozycje{% endblock %}
+
+{% block content %}
+<!-- Jeśli nie masz ustawionego dark mode na poziomie <body>, ten div wymusi ciemny motyw dla całego dashboardu -->
+<div data-bs-theme="dark" class="text-body bg-body p-4 rounded-3 shadow-sm">
+    
+    <!-- NAGŁÓWEK I PRZYCISK DODAWANIA -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+        <h2 class="mb-0">
+            <i class="bi bi-grid-1x2-fill text-primary me-2"></i> Mój Kokpit
+        </h2>
+        
+        <!-- Kontener grupujący przyciski (teraz linki) -->
+        <div class="d-flex gap-2">
+            <!-- Link do formularza filmów -->
+            <a href="{% url 'new_movie_proposition' %}" class="btn btn-outline-warning d-flex align-items-center">
+                <i class="bi bi-film me-2"></i> Dodaj film
+            </a>
+            
+            <!-- Link do formularza książek -->
+            <a href="{% url 'new_book_proposition' %}" class="btn btn-outline-info d-flex align-items-center">
+                <i class="bi bi-book me-2"></i> Dodaj książkę
+            </a>
+        </div>
+    </div>
+
+    <!-- SEKCJA STATYSTYK (BAJERY) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-film me-2"></i>Obejrzane w tym roku</h6>
+                    <h2 class="mb-0">{{ watched_this_year }} <span class="fs-6 text-success"><i class="bi bi-arrow-up"></i> 2 w tym tyg.</span></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-book me-2"></i>Przeczytane książki</h6>
+                    <h2 class="mb-0">{{ read_this_year }} <span class="fs-6 text-muted">/ cel: 30</span></h2>
+                    <!-- Pasek postępu celu -->
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-bg-primary h-100 shadow">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                    <h6 class="mb-1">Czas na relaks</h6>
+                    <p class="mb-0 small">Masz na liście <strong>{{ total_movies_to_watch }}</strong> filmów do obejrzenia i <strong>{{ total_books_to_read }}</strong> książek do przeczytania!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GŁÓWNE LISTY: FILMY I KSIĄŻKI -->
+    <!-- Dodano align-items-start, by kolumny nie rozciągały się do siebie nawzajem -->
+    <div class="row g-4 align-items-start">
+        
+        <!-- LISTA FILMÓW -->
+        <div class="col-lg-6">
+            <!-- USUNIĘTO: h-100 -->
+            <div class="card border-secondary bg-dark-subtle">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-camera-reels text-warning me-2"></i>Filmy do obejrzenia</h5>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ total_movies_to_watch }}</span>
+                </div>
+                
+                <!-- PRO TIP: Jeśli chcesz by długa lista nie rozpychała strony, 
+                    możesz dodać tu np. style="max-height: 400px; overflow-y: auto;" -->
+                <ul class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Przykład elementu z pętli Django -->
+                    {% for movie in movies_to_watch %}
+                    <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center py-3">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ movie.title }}</h6>
+                                <small class="text-muted">{{ movie.production_year }}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge text-bg-secondary me-2">{{ movie.genre_id }}</span>
+                            <a href="{% url 'delete_movie_proposition' pk=movie.id %}" class="btn btn-danger ms-2">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- LISTA KSIĄŻEK -->
+        <div class="col-lg-6">
+            <!-- USUNIĘTO: h-100 -->
+            <div class="card border-secondary bg-dark-subtle">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-book-half text-info me-2"></i>Książki do przeczytania</h5>
+                    <span class="badge bg-info text-dark rounded-pill">{{ total_books_to_read }}</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <!-- Przykład elementu z pętli Django -->
+                    {% for book in books_to_read %}
+                    <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center py-3">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ book.title }}</h6>
+                                <small class="text-muted">{{ book.author }}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge text-bg-dark border border-secondary me-2">Audiobook</span>
+                            <a href="{% url 'delete_book_proposition' pk=book.id %}" class="btn btn-danger ms-2">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
