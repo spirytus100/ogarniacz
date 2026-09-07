@@ -1,4 +1,5 @@
 {% extends 'list.html' %}
+{% load l10n %}
 
 {% block title %}Filmy{% endblock %}
 
@@ -26,7 +27,7 @@
             {% for movie in page_obj %}
                 <tr>
                     <td><a href="{% url 'movie_details' pk=movie.id %}">{{ movie.title|truncatewords:6 }}</a></td>
-                    <td>{{ movie.production_year }}</td>
+                    <td>{{ movie.production_year|unlocalize }}</td>
                     <td>{{ movie.genre_id }}</td>
                     <td>{{ movie.watch_date }}</td>
                     <td>{{ movie.rating }}</td>

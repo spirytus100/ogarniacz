@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load l10n %}
 
 {% block title %}Szczegóły {{ book.title }}{% endblock %}
 
@@ -15,7 +16,7 @@
             <h3 class="card-title">{{ book.title }}</h3>
             <br>
             <p class="card-text">Autor: {{ book.author }}</p>
-            <p class="card-text">Rok publikacji: {{ book.published_year}}</p>
+            <p class="card-text">Rok publikacji: {{ book.published_year|unlocalize }}</p>
             <p class="card-text">Data przeczytania: {{ book.date_finished }}</p>
             <p class="card-text">Ocena: {{ book.rating }}</p>
             <p class="card-text">Liczba stron: {{ book.number_of_pages }}</p>

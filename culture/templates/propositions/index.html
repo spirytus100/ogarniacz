@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}Propozycje{% endblock %}
 
@@ -51,13 +52,13 @@
         <div class="col-md-4">
             <div class="card text-bg-primary h-100 shadow">
                 <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
-                    <h6 class="mb-1">Czas na relaks</h6>
+                    <h6 class="mb-1">Czas na relaks!</h6>
                     <p class="mb-0 small">Masz na liście <strong>{{ total_movies_to_watch }}</strong> filmów do obejrzenia i <strong>{{ total_books_to_read }}</strong> książek do przeczytania!</p>
                 </div>
             </div>
         </div>
     </div>
-
+    
     <!-- GŁÓWNE LISTY: FILMY I KSIĄŻKI -->
     <!-- Dodano align-items-start, by kolumny nie rozciągały się do siebie nawzajem -->
     <div class="row g-4 align-items-start">
@@ -80,11 +81,11 @@
                         <div class="d-flex align-items-center">
                             <div>
                                 <h6 class="mb-0">{{ movie.title }}</h6>
-                                <small class="text-muted">{{ movie.production_year }}</small>
+                                <small class="text-muted">{{ movie.production_year|unlocalize }}</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
-                            <span class="badge text-bg-secondary me-2">{{ movie.genre_id }}</span>
+                            <!-- <span class="badge text-bg-secondary me-2">{{ movie.genre_id }}</span> -->
                             <a href="{% url 'delete_movie_proposition' pk=movie.id %}" class="btn btn-danger ms-2">
                                 <i class="bi bi-trash3"></i>
                             </a>
@@ -110,11 +111,10 @@
                         <div class="d-flex align-items-center">
                             <div>
                                 <h6 class="mb-0">{{ book.title }}</h6>
-                                <small class="text-muted">{{ book.author }}</small>
+                                <small class="text-muted">{{ book.author }}, {{ book.published_year|unlocalize }}</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
-                            <span class="badge text-bg-dark border border-secondary me-2">Audiobook</span>
                             <a href="{% url 'delete_book_proposition' pk=book.id %}" class="btn btn-danger ms-2">
                                 <i class="bi bi-trash3"></i>
                             </a>
