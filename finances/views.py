@@ -2,12 +2,14 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
-from django.db.models import F, Subquery, OuterRef, DecimalField, ExpressionWrapper
-from django.db.models.functions import Coalesce
+from django.db.models import F, Subquery, OuterRef, DecimalField, ExpressionWrapper, Sum, Value
+from django.db.models.functions import Coalesce, Cast
 
-from .models import Investment, Income, Cash, ExchangeRate
+from .models import Investment, Income, Cash, ExchangeRate, Crypto, FinancialAccount
 
 from .forms import InvestmentForm, IncomeForm, CashForm
+
+from dashboard.views import get_total_wealth
 
 
 
@@ -18,8 +20,97 @@ def add_errors_to_messages(request, form):
 
 
 
+# Widok główny dla finansów
+
+def get_savings():
+    # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
+    exchange_rate_subquery = ExchangeRate.objects.filter(
+        currency=OuterRef('currency')
+    ).order_by('-updated_at').values('rate')[:1]
+
+    # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
+    result = Investment.objects.filter(
+        active=True,
+        financial_account_id__retirement=False  # <--- TUTAJ DODANO FILTR (zamień 'account' na nazwę Twojego klucza obcego)
+    ).annotate(
+        # Przypisujemy kurs do każdego wiersza (jeśli brak, domyślnie 1.0)
+        current_exchange_rate=Coalesce(
+            Subquery(exchange_rate_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            Value(1.0), # <--- POPRAWKA: użyto Value() dla bezpieczeństwa typowania w ORM
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
+    ).aggregate(
+        total_value=Sum(
+            ExpressionWrapper(
+                (
+                    Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') 
+                    - F('buy_commission')
+                ) * F('current_exchange_rate'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
+        )
+    )
+
+    investments_total = result['total_value'] or 0
+
+    # BONUS: Jeśli "oszczędności normalne" nie powinny zawierać gotówki z kont emerytalnych,
+    # to tutaj również powinieneś odfiltrować retirement=False
+    cash_total = FinancialAccount.objects.filter(
+        retirement=False  # <--- Opcjonalnie: filtrujemy też gotówkę
+    ).aggregate(Sum("cash"))["cash__sum"] or 0
+    
+    crypto_total = Crypto.objects.aggregate(Sum("value"))["value__sum"] or 0
+
+    return cash_total + crypto_total + investments_total
+
+
+def get_retirement_savings():
+    # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
+    exchange_rate_subquery = ExchangeRate.objects.filter(
+        currency=OuterRef('currency')
+    ).order_by('-updated_at').values('rate')[:1]
+
+    # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
+    result = Investment.objects.filter(
+        active=True, retirement=True
+    ).annotate(
+        # Przypisujemy kurs do każdego wiersza (jeśli brak, domyślnie 1.0)
+        current_exchange_rate=Coalesce(
+            Subquery(exchange_rate_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            1.0,
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
+    ).aggregate(
+        total_value=Sum(
+            ExpressionWrapper(
+                (
+                    Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') 
+                    - F('buy_commission')
+                ) * F('current_exchange_rate'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
+        )
+    )
+
+    investments_total = result['total_value'] or 0
+
+    return investments_total
+
+
+def get_cash_total():
+    return Cash.objects.aggregate(Sum("value"))["value__sum"] or 0
+
+
 def index(request):
-    return HttpResponse("To jest aplikacja finances")
+    total_savings = round(get_total_wealth(), 2)
+    normal_savings = round(get_savings(), 2)
+    retirement_savings = round(get_retirement_savings(), 2)
+    cash_total = round(get_cash_total(), 2)
+    return render(request, "dashboard/dashboard_finances.html", {
+        'total_savings': total_savings, 
+        'normal_savings': normal_savings,
+        'retirement_savings': retirement_savings,
+        'cash_amount': cash_total})
 
 
 # Inwestycje

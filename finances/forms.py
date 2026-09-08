@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Investment, InvestmentCategory, Income, IncomeCategory, Cash
+from .models import Investment, InvestmentCategory, Income, IncomeCategory, Cash, FinancialAccount
 
 
 class InvestmentForm(forms.ModelForm):
@@ -11,12 +11,19 @@ class InvestmentForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
+    financial_account_id = forms.ModelChoiceField(
+        queryset=FinancialAccount.objects.all(),
+        label='Konto finansowe',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = Investment
-        fields = ['name', 'category_id', 'buy_date', 'buy_quantity', 'buy_price', 'buy_commission', 'current_price', 'current_price_date', 'sell_date', 'sell_quantity', 'sell_price', 'sell_commission', 'active', 'interest_rate', 'currency', 'retirement']
+        fields = ['name', 'category_id', 'financial_account_id', 'buy_date', 'buy_quantity', 'buy_price', 'buy_commission', 'current_price', 'current_price_date', 'sell_date', 'sell_quantity', 'sell_price', 'sell_commission', 'active', 'interest_rate', 'currency', 'retirement']
         labels = {
             'name': 'Nazwa',
             'category_id': 'Kategoria',
+            'financial_account_id': 'Konto finansowe',
             'buy_date': 'Data zakupu',
             'buy_quantity': 'Ilość',
             'buy_price': 'Cena zakupu',

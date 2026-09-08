@@ -24,10 +24,22 @@ class ExchangeRate(models.Model):
         return self.currency
 
 
+class FinancialAccount(models.Model):
+    name = models.CharField(max_length=100)
+    cash = models.DecimalField(max_digits=7, decimal_places=2)
+    retirement = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Investment(models.Model):
     name = models.CharField(max_length=50)
     category_id = models.ForeignKey(InvestmentCategory, null=True, on_delete=models.SET_NULL)
     exchange_rate_id = models.ForeignKey(ExchangeRate, null=True, on_delete=models.SET_NULL)
+    financial_account_id = models.ForeignKey(FinancialAccount, null=True, on_delete=models.SET_NULL)
     buy_date = models.DateField(default=datetime.date.today)
     buy_quantity = models.SmallIntegerField(validators=[MinValueValidator(1)])
     buy_price = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])

@@ -28,4 +28,4 @@ class ExchangeRateAdmin(admin.ModelAdmin):
     list_display = ['currency', 'rate']
 
 
-admin.site.register([InvestmentCategory, IncomeCategory, WealthChange])
+admin.site.register([InvestmentCategory, IncomeCategory, WealthChange, FinancialAccount])
