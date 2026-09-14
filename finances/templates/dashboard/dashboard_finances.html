@@ -149,12 +149,18 @@
                 <h5 class="card-title fw-bold mb-3">Droga do miliona</h5>
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted fs-6">Postęp</span>
-                    <span class="text-white fw-bold">24.5%</span>
+                    <span class="text-white fw-bold">{{ perc_of_million }}%</span>
                 </div>
                 <div class="progress" style="height: 10px; background-color: #2b2b40;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: 24.5%;" aria-valuenow="24.5" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-success" 
+                        role="progressbar" 
+                        style="width: {{ perc_of_million|floatformat:'2u' }}%;" 
+                        aria-valuenow="{{ perc_of_million|floatformat:'2u' }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
+                    </div>
                 </div>
-                <small class="text-muted mt-2 d-block">Zostało: 755 000 PLN</small>
+                <small class="text-muted mt-2 d-block">Zostało: {{ diff_to_million }} PLN</small>
             </div>
 
             <!-- Dochód pasywny (Dywidendy itp.) -->
@@ -165,7 +171,7 @@
                         <i class="bi bi-graph-up-arrow"></i>
                     </div>
                     <div>
-                        <h3 class="mb-0 fw-bold text-white">{{ passive_income|default:"450" }} PLN</h3>
+                        <h3 class="mb-0 fw-bold text-white">{{ passive_income }} PLN</h3>
                         <small class="text-success"><i class="bi bi-arrow-up-short"></i>+5.2% r/r</small>
                     </div>
                 </div>
@@ -221,27 +227,46 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Konfiguracja globalna Chart.js pod Dark Mode
     Chart.defaults.color = '#a0a0b5';
     Chart.defaults.borderColor = '#2b2b40';
 
-    // 1. Wykres struktury aktywów (Doughnut)
+    // Obszerna paleta żywych kolorów dopasowanych do Dark Mode
+    const chartColors = [
+        '#3b82f6', // Niebieski
+        '#10b981', // Szmaragdowy (Zielony)
+        '#f59e0b', // Bursztynowy
+        '#8b5cf6', // Fioletowy
+        '#ec4899', // Różowy
+        '#0ea5e9', // Błękitny
+        '#ef4444', // Czerwony
+        '#14b8a6', // Morski (Teal)
+        '#f97316', // Pomarańczowy
+        '#84cc16', // Limonkowy
+        '#6366f1', // Indygo
+        '#eab308', // Żółty
+        '#d946ef', // Fuksja
+        '#06b6d4', // Cyjan
+        '#f43f5e', // Malinowy (Rose)
+        '#22c55e', // Jasnozielony
+        '#a855f7', // Purpurowy
+        '#64748b'  // Szaroniebieski (Dla np. "Bez kategorii")
+    ];
+
     const ctxAssets = document.getElementById('assetsChart').getContext('2d');
+    
+    // Dane przesyłane z Django
+    const labelsData = {{ asset_labels|safe }};
+    const valuesData = {{ asset_data|safe }};
+
     new Chart(ctxAssets, {
         type: 'doughnut',
         data: {
-            // Tutaj możesz wstawić zmienne z Django, np. {{ asset_labels|safe }}
-            labels: ['Akcje/ETF', 'Obligacje', 'Gotówka', 'Krypto', 'Inne'],
+            labels: labelsData,
             datasets: [{
-                // Tutaj zmienne, np. {{ asset_data|safe }}
-                data: [50, 30, 12, 5, 3],
-                backgroundColor: [
-                    '#3b82f6', // Niebieski (Akcje)
-                    '#10b981', // Zielony (Obligacje)
-                    '#0ea5e9', // Cyjan (Gotówka)
-                    '#f59e0b', // Żółty (Krypto)
-                    '#8b5cf6'  // Fiolet (Inne)
-                ],
+                data: valuesData,
+                // Przypinamy listę kolorów (jeśli kategorii jest więcej niż kolorów, Chart.js użyje ich ponownie, 
+                // ale przy 18 kolorach raczej to nie grozi)
+                backgroundColor: chartColors,
                 borderWidth: 0,
                 hoverOffset: 4
             }]
@@ -253,8 +278,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 20,
+                        padding: 15,
                         usePointStyle: true,
+                        color: '#e0e0e0' // jaśniejsza czcionka w legendzie
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.label + ': ' + context.parsed + '%';
+                        }
                     }
                 }
             },
@@ -273,11 +306,11 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctxProjection, {
         type: 'line',
         data: {
-            labels: ['2026', '2027', '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035'],
+            labels: {{ projection_labels|safe }},
             datasets: [{
                 label: 'Kapitał (PLN)',
                 // Symulowane dane (w Django: {{ projection_data|safe }})
-                data: [245000, 280000, 320000, 365000, 415000, 475000, 540000, 615000, 700000, 800000],
+                data: {{ projection_data|safe }},
                 borderColor: '#10b981',
                 backgroundColor: gradient,
                 borderWidth: 3,

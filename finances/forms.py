@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Investment, InvestmentCategory, Income, IncomeCategory, Cash, FinancialAccount
+from .models import Investment, InvestmentCategory, Income, FinancialAccount
 
 
 class InvestmentForm(forms.ModelForm):
@@ -19,7 +19,7 @@ class InvestmentForm(forms.ModelForm):
 
     class Meta:
         model = Investment
-        fields = ['name', 'category_id', 'financial_account_id', 'buy_date', 'buy_quantity', 'buy_price', 'buy_commission', 'current_price', 'current_price_date', 'sell_date', 'sell_quantity', 'sell_price', 'sell_commission', 'active', 'interest_rate', 'currency', 'retirement']
+        fields = ['name', 'category_id', 'financial_account_id', 'buy_date', 'buy_quantity', 'buy_price', 'buy_commission', 'current_price', 'current_price_date', 'sell_date', 'sell_quantity', 'sell_price', 'sell_commission', 'active', 'interest_rate', 'exchange_rate_id']
         labels = {
             'name': 'Nazwa',
             'category_id': 'Kategoria',
@@ -36,8 +36,7 @@ class InvestmentForm(forms.ModelForm):
             'sell_commission': 'Prowizja sprzedaży',
             'active': 'Aktywna',
             'interest_rate': 'Stopa procentowa',
-            'currency': 'Waluta',
-            'retirement': 'Emerytura'
+            'exchange_rate_id': 'Waluta',
         }
         widgets = {
             'name': forms.TextInput(attrs={
@@ -98,12 +97,8 @@ class InvestmentForm(forms.ModelForm):
                 'step': '0.0001',
                 'min': '0',
             }),
-            'currency': forms.TextInput(attrs={
-                'class': 'form-control',
-                'maxlength': '3',
-            }),
-            'retirement': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
+            'exchange_rate_id': forms.Select(attrs={
+                'class': 'form-select'
             }),
         }
 
@@ -138,20 +133,20 @@ class IncomeForm(forms.ModelForm):
         }
 
 
-class CashForm(forms.ModelForm):
+class FinancialAccountForm(forms.ModelForm):
 
     class Meta:
-        model = Cash
-        fields = ['name', 'value']
+        model = FinancialAccount
+        fields = ['name', 'cash']
         labels = {
             'name': 'Nazwa',
-            'value': 'Wartość',
+            'cash': 'Wartość',
         }
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control'
             }),
-            'value': forms.NumberInput(attrs={
+            'cash': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'step': '0.01',
                 'min': '0',

@@ -1,13 +1,19 @@
+from decimal import Decimal
+from datetime import timedelta
+import json
+
+from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import F, Subquery, OuterRef, DecimalField, ExpressionWrapper, Sum, Value
 from django.db.models.functions import Coalesce, Cast
+import constance
 
-from .models import Investment, Income, Cash, ExchangeRate, Crypto, FinancialAccount
+from .models import Investment, Income, ExchangeRate, Crypto, FinancialAccount
 
-from .forms import InvestmentForm, IncomeForm, CashForm
+from .forms import InvestmentForm, IncomeForm, FinancialAccountForm
 
 from dashboard.views import get_total_wealth
 
@@ -20,12 +26,12 @@ def add_errors_to_messages(request, form):
 
 
 
-# Widok główny dla finansów
+### Widok główny dla finansów ###
 
 def get_savings():
     # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
     exchange_rate_subquery = ExchangeRate.objects.filter(
-        currency=OuterRef('currency')
+        currency=OuterRef('exchange_rate_id__currency')
     ).order_by('-updated_at').values('rate')[:1]
 
     # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
@@ -66,39 +72,164 @@ def get_savings():
 
 def get_retirement_savings():
     # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
-    exchange_rate_subquery = ExchangeRate.objects.filter(
-        currency=OuterRef('currency')
-    ).order_by('-updated_at').values('rate')[:1]
-
-    # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
-    result = Investment.objects.filter(
-        active=True, retirement=True
-    ).annotate(
-        # Przypisujemy kurs do każdego wiersza (jeśli brak, domyślnie 1.0)
-        current_exchange_rate=Coalesce(
-            Subquery(exchange_rate_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
-            1.0,
-            output_field=DecimalField(max_digits=10, decimal_places=2)
+        exchange_rate_subquery = ExchangeRate.objects.filter(
+            currency=OuterRef('exchange_rate_id__currency')
+        ).order_by('-updated_at').values('rate')[:1]
+    
+        # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
+        result = Investment.objects.filter(
+            active=True,
+            financial_account_id__retirement=True  # <--- TUTAJ DODANO FILTR (zamień 'account' na nazwę Twojego klucza obcego)
+        ).annotate(
+            # Przypisujemy kurs do każdego wiersza (jeśli brak, domyślnie 1.0)
+            current_exchange_rate=Coalesce(
+                Subquery(exchange_rate_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+                Value(1.0), # <--- POPRAWKA: użyto Value() dla bezpieczeństwa typowania w ORM
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
+        ).aggregate(
+            total_value=Sum(
+                ExpressionWrapper(
+                    (
+                        Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') 
+                        - F('buy_commission')
+                    ) * F('current_exchange_rate'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            )
         )
+    
+        investments_total = result['total_value'] or 0
+    
+        # BONUS: Jeśli "oszczędności normalne" nie powinny zawierać gotówki z kont emerytalnych,
+        # to tutaj również powinieneś odfiltrować retirement=False
+        cash_total = FinancialAccount.objects.filter(
+            retirement=False  # <--- Opcjonalnie: filtrujemy też gotówkę
+        ).aggregate(Sum("cash"))["cash__sum"] or 0
+    
+        return cash_total + investments_total
+
+
+def get_cash_total():
+    return FinancialAccount.objects.filter(
+        retirement=False
+    ).aggregate(Sum("cash"))["cash__sum"] or 0
+
+
+def path_to_million(current_savings):
+    percent = current_savings / 1000000 * 100
+    to_save = 1000000 - current_savings
+    if to_save < 0:
+        to_save = 0
+    if percent > 100:
+        percent = 100
+    return round(percent, 2), round(to_save, 2)
+
+
+def get_passive_income():
+    one_year_ago = timezone.now() - timedelta(days=365)
+
+    passive_income = Income.objects.filter(
+        category__name="Kapitał",
+        date__gte=one_year_ago
     ).aggregate(
+        total_value=Sum('value')
+    )['total_value'] or Decimal('0.00')
+
+    return round(passive_income / 12, 2)
+
+
+def get_asset_allocation():
+    investments = Investment.objects.filter(
+        active=True,
+        financial_account_id__retirement=False
+    )
+
+    allocation_qs = investments.values(
+        category_name=F('category_id__name')
+    ).annotate(
         total_value=Sum(
             ExpressionWrapper(
-                (
-                    Cast(F('buy_quantity'), output_field=DecimalField(max_digits=10, decimal_places=2)) * F('buy_price') 
-                    - F('buy_commission')
-                ) * F('current_exchange_rate'),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
+                Cast(F('buy_quantity'), output_field=DecimalField(max_digits=12, decimal_places=2)) 
+                * Coalesce(F('current_price'), F('buy_price')) 
+                * Coalesce(F('exchange_rate_id__rate'), Value(1.0), output_field=DecimalField(max_digits=10, decimal_places=2)),
+                output_field=DecimalField(max_digits=15, decimal_places=2)
             )
         )
     )
 
-    investments_total = result['total_value'] or 0
+    # 1. Zbieramy surowe wartości do słownika zamiast od razu liczyć procenty
+    raw_data = {}
+    
+    for item in allocation_qs:
+        cat_name = item['category_name'] or "Bez kategorii"
+        val = item['total_value'] or Decimal('0.00')
+        # Dodajemy do istniejącej kategorii (na wypadek gdyby zapytanie zwróciło duplikaty)
+        raw_data[cat_name] = raw_data.get(cat_name, Decimal('0.00')) + val
 
-    return investments_total
+    # 2. Dodajemy gotówkę bezpośrednio do naszego słownika surowych wartości
+    cash_total = FinancialAccount.objects.filter(
+        retirement=False
+    ).aggregate(Sum("cash"))["cash__sum"] or Decimal('0.00')
+
+    if cash_total > Decimal('0.00'):
+        raw_data["Gotówka"] = raw_data.get("Gotówka", Decimal('0.00')) + cash_total
+
+    # 3. Obliczamy całkowitą wartość całego portfela (inwestycje + gotówka)
+    total_portfolio_value = sum(raw_data.values())
+
+    labels = []
+    data = []
+
+    # 4. Dopiero teraz liczymy procenty dla wszystkich kategorii za jednym razem
+    for cat_name, val in raw_data.items():
+        if total_portfolio_value > 0:
+            percentage = (val / total_portfolio_value) * Decimal('100.0')
+        else:
+            percentage = Decimal('0.00')
+            
+        labels.append(cat_name)
+        data.append(round(float(percentage), 2))
+
+    return {
+        'labels': labels,
+        'data': data
+    }
 
 
-def get_cash_total():
-    return Cash.objects.aggregate(Sum("value"))["value__sum"] or 0
+def get_capital_projection(current_capital, yearly_contribution=24000.0, annual_return=0.07):
+    """
+    Oblicza projekcję wzrostu kapitału od obecnego roku do 2050 roku.
+    
+    :param current_capital: Aktualny stan portfela (np. z funkcji get_savings())
+    :param yearly_contribution: Roczna kwota, którą zamierzasz dokładać do portfela (np. 24 000 PLN = 2 000 PLN/m-c)
+    :param annual_return: Szacunkowa roczna stopa zwrotu (domyślnie 7% = 0.07)
+    :return: Słownik z dwiema listami: etykietami (lata) i danymi (kapitał)
+    """
+    # Pobieramy aktualny rok (w Twoim przypadku 2026)
+    current_year = timezone.now().year
+    end_year = 2050
+    
+    labels = []
+    data = []
+    
+    # Rzutujemy kapitał początkowy na typ float, aby ułatwić obliczenia
+    capital = float(current_capital)
+    
+    for year in range(current_year, end_year + 1):
+        labels.append(str(year))
+        
+        # Dodajemy zaokrąglony kapitał do listy (bez groszy, żeby wykres był czytelniejszy)
+        data.append(int(round(capital, 0)))
+        
+        # Obliczamy kapitał na kolejny rok: 
+        # Obecny kapitał * (1 + stopa zwrotu) + nowe środki wpłacone w ciągu roku
+        capital = (capital * (1.0 + annual_return)) + float(yearly_contribution)
+        
+    return {
+        'labels': labels,
+        'data': data
+    }
 
 
 def index(request):
@@ -106,14 +237,26 @@ def index(request):
     normal_savings = round(get_savings(), 2)
     retirement_savings = round(get_retirement_savings(), 2)
     cash_total = round(get_cash_total(), 2)
+    perc_of_million, diff_to_million = path_to_million(total_savings)
+    passive_income = get_passive_income()
+    allocation = get_asset_allocation()
+    capital_projection = get_capital_projection(total_savings, constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION, constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN)
+
     return render(request, "dashboard/dashboard_finances.html", {
         'total_savings': total_savings, 
         'normal_savings': normal_savings,
         'retirement_savings': retirement_savings,
-        'cash_amount': cash_total})
+        'cash_amount': cash_total,
+        'perc_of_million': perc_of_million,
+        'diff_to_million': diff_to_million,
+        'passive_income': passive_income,
+        'asset_labels': json.dumps(allocation['labels']),
+        'asset_data': json.dumps(allocation['data']),
+        'projection_labels': json.dumps(capital_projection['labels']),
+        'projection_data': json.dumps(capital_projection['data']),})
 
 
-# Inwestycje
+### Inwestycje ###
 
 
 def list_of_investments(request):
@@ -121,7 +264,7 @@ def list_of_investments(request):
     # Zakładam, że w modelu Investment masz pole 'currency'.
     # Bierzemy najnowszy kurs (order_by('-updated_at')).
     exchange_rate_subquery = ExchangeRate.objects.filter(
-        currency=OuterRef('currency')
+        currency=OuterRef('exchange_rate_id__currency')
     ).order_by('-updated_at').values('rate')[:1]
 
     # 2. Główny Queryset
@@ -249,7 +392,7 @@ def delete_investment(request, pk):
     return render(request, 'investments/confirm_delete.html', context)
 
 
-# Incomes
+### Incomes ###
 
 def incomes(request):
     incomes = Income.objects.all().order_by("-date")
@@ -318,18 +461,18 @@ def delete_income(request, pk):
     return render(request, 'incomes/confirm_delete.html', context)
 
 
-# cash
+### Gotówka ###
 
 def cash(request):
-    cash = Cash.objects.all().order_by("id")
+    cash = FinancialAccount.objects.order_by("id")
     return render(request, "cash/index.html", {'cash': cash})
 
 
 def edit_cash(request, pk):
-    cash = get_object_or_404(Cash, pk=pk)
+    fin_account = get_object_or_404(FinancialAccount, pk=pk)
 
     if request.method == 'POST':
-        form = CashForm(request.POST, instance=cash)
+        form = FinancialAccountForm(request.POST, instance=fin_account)
 
         if form.is_valid():
             cash = form.save()
@@ -338,7 +481,7 @@ def edit_cash(request, pk):
             add_errors_to_messages(request, form)
         
     else:
-        form = CashForm(instance=cash)
+        form = FinancialAccountForm(instance=fin_account)
 
     return render(request, 'cash/edit.html', {'form': form})
 

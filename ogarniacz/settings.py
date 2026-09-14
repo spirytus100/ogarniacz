@@ -155,4 +155,6 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {
     'CURRENT_DAILY_WORD': ('', 'Current daily word'),
     'CURRENT_DAILY_WORD_DESCRIPTION': ('', 'Current daily word description'),
+    'CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION': (15000, 'Annual contribution to capital projection'),
+    'CAPITAL_PROJECTION_ANNUAL_RETURN': (0.07, 'Interest rate for capital projection')
 }

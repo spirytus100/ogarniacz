@@ -52,8 +52,6 @@ class Investment(models.Model):
     sell_commission = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)], blank=True, null=True)
     interest_rate = models.DecimalField(max_digits=7, decimal_places=4, validators=[MinValueValidator(0)], blank=True, null=True)
     active = models.BooleanField(default=True)
-    currency = models.CharField(max_length=3)
-    retirement = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -75,16 +73,6 @@ class Income(models.Model):
     category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.SET_NULL)
     date = models.DateField(default=datetime.date.today)
     value = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Cash(models.Model):
-    name = models.CharField(max_length=50)
-    value = models.DecimalField(max_digits=7, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

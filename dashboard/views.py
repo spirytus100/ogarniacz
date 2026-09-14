@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
-from finances.models import Investment, Cash, Crypto, ExchangeRate, Income, WealthChange
+from finances.models import Investment, Crypto, ExchangeRate, Income, WealthChange, FinancialAccount
 from expenses.models import Expense, Budget
 
 
@@ -17,7 +17,7 @@ from expenses.models import Expense, Budget
 def get_total_wealth():
     # 1. Podzapytanie pobierające najnowszy kurs dla danej waluty inwestycji
     exchange_rate_subquery = ExchangeRate.objects.filter(
-        currency=OuterRef('currency')
+        currency=OuterRef('exchange_rate_id__currency')
     ).order_by('-updated_at').values('rate')[:1]
 
     # 2. Wyciągnięcie kursu i przemnożenie go wewnątrz zapytania agregującego
@@ -44,7 +44,7 @@ def get_total_wealth():
 
     investments_total = result['total_value'] or 0
 
-    cash_total = Cash.objects.aggregate(Sum("value"))["value__sum"] or 0
+    cash_total = FinancialAccount.objects.aggregate(Sum("cash"))["cash__sum"] or 0
     crypto_total = Crypto.objects.aggregate(Sum("value"))["value__sum"] or 0
 
     return cash_total + crypto_total + investments_total

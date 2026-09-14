@@ -22,7 +22,7 @@
             {% for el in cash %}
                 <tr>
                     <td><a href="{% url 'edit_cash' pk=el.id %}">{{ el.name }}</a></td>
-                    <td>{{ el.value }}</td>
+                    <td>{{ el.cash }} zł</td>
                 </tr>
             {% endfor %}
         </tbody>
