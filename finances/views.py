@@ -104,7 +104,7 @@ def get_retirement_savings():
         # BONUS: Jeśli "oszczędności normalne" nie powinny zawierać gotówki z kont emerytalnych,
         # to tutaj również powinieneś odfiltrować retirement=False
         cash_total = FinancialAccount.objects.filter(
-            retirement=False  # <--- Opcjonalnie: filtrujemy też gotówkę
+            retirement=True  # <--- Opcjonalnie: filtrujemy też gotówkę
         ).aggregate(Sum("cash"))["cash__sum"] or 0
     
         return cash_total + investments_total
