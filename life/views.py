@@ -99,7 +99,7 @@ def edit_activity(request, pk):
 
         if form.is_valid():
             a = form.save()
-            return redirect('activities')
+            return redirect('activity_dashboard')
         else:
             add_errors_to_messages(request, form)
     else:
@@ -115,7 +115,7 @@ def new_activity(request):
 
         if form.is_valid():
             activity = form.save()
-            return redirect('activities')
+            return redirect('activity_dashboard')
         else:
             add_errors_to_messages(request, form)
     else:
@@ -130,7 +130,7 @@ def delete_activity(request, pk):
 
     if request.method == "POST":
         activity.delete()
-        return redirect('activities')
+        return redirect('activity_dashboard')
 
     context = {'activity': activity}
     return render(request, "activities/confirm_delete.html", context)
