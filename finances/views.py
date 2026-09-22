@@ -270,7 +270,7 @@ def retirement(request):
     zus = round(constance.config.RETIREMENT_CAPITAL_ZUS, 2)
     private_pension_plan = round(get_retirement_savings(), 2)
     cash = round(get_cash_total(retirement=True), 2)
-    invested_capital = round(get_invested_capital(total_retirement_savings, cash), 2)
+    invested_capital = round(get_invested_capital(private_pension_plan, cash), 2)
     perc_of_million, diff_to_million = path_to_million(total_retirement_savings)
     passive_income = get_passive_income()
     allocation = get_asset_allocation(retirement=True)
