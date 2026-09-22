@@ -110,9 +110,9 @@ def get_retirement_savings():
         return cash_total + investments_total
 
 
-def get_cash_total():
+def get_cash_total(retirement=False):
     return FinancialAccount.objects.filter(
-        retirement=False
+        retirement=retirement
     ).aggregate(Sum("cash"))["cash__sum"] or 0
 
 
@@ -139,10 +139,10 @@ def get_passive_income():
     return round(passive_income / 12, 2)
 
 
-def get_asset_allocation():
+def get_asset_allocation(retirement=False):
     investments = Investment.objects.filter(
         active=True,
-        financial_account_id__retirement=False
+        financial_account_id__retirement=retirement
     )
 
     allocation_qs = investments.values(
@@ -169,7 +169,7 @@ def get_asset_allocation():
 
     # 2. Dodajemy gotówkę bezpośrednio do naszego słownika surowych wartości
     cash_total = FinancialAccount.objects.filter(
-        retirement=False
+        retirement=retirement
     ).aggregate(Sum("cash"))["cash__sum"] or Decimal('0.00')
 
     if cash_total > Decimal('0.00'):
@@ -232,11 +232,20 @@ def get_capital_projection(current_capital, yearly_contribution=24000.0, annual_
     }
 
 
+def get_invested_capital(total, cash):
+    return round((total - cash) / total * 100, 2)
+
+
+def get_projected_pension_zus():
+    projected_pension_zus = constance.config.PROJECTED_PENSION_ZUS - (constance.config.PROJECTED_PENSION_ZUS - 2500) * 0.12 - constance.config.PROJECTED_PENSION_ZUS * 0.09 # emerytura brutto - 12% podatek - 9% składka zdrowotna (przy założeniu, że nie ma innych dochodów)
+    return round(Decimal(projected_pension_zus), 2)
+
+
 def index(request):
     total_savings = round(get_total_wealth(), 2)
     normal_savings = round(get_savings(), 2)
-    retirement_savings = round(get_retirement_savings(), 2)
     cash_total = round(get_cash_total(), 2)
+    invested_capital = round(get_invested_capital(normal_savings, cash_total), 2)
     perc_of_million, diff_to_million = path_to_million(total_savings)
     passive_income = get_passive_income()
     allocation = get_asset_allocation()
@@ -245,11 +254,40 @@ def index(request):
     return render(request, "dashboard/dashboard_finances.html", {
         'total_savings': total_savings, 
         'normal_savings': normal_savings,
-        'retirement_savings': retirement_savings,
+        'invested_capital': invested_capital,
         'cash_amount': cash_total,
         'perc_of_million': perc_of_million,
         'diff_to_million': diff_to_million,
         'passive_income': passive_income,
+        'asset_labels': json.dumps(allocation['labels']),
+        'asset_data': json.dumps(allocation['data']),
+        'projection_labels': json.dumps(capital_projection['labels']),
+        'projection_data': json.dumps(capital_projection['data']),})
+
+
+def retirement(request):
+    total_retirement_savings = round(get_retirement_savings(), 2) + round(constance.config.RETIREMENT_CAPITAL_ZUS, 2)
+    zus = round(constance.config.RETIREMENT_CAPITAL_ZUS, 2)
+    private_pension_plan = round(get_retirement_savings(), 2)
+    cash = round(get_cash_total(retirement=True), 2)
+    invested_capital = round(get_invested_capital(total_retirement_savings, cash), 2)
+    perc_of_million, diff_to_million = path_to_million(total_retirement_savings)
+    passive_income = get_passive_income()
+    allocation = get_asset_allocation(retirement=True)
+    capital_projection = get_capital_projection(private_pension_plan, constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION, constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN)
+    projected_pension_zus = get_projected_pension_zus()
+    projected_private_pension = private_pension_plan / constance.config.LIFE_EXPECTANCY
+    projected_pension = round(Decimal(projected_pension_zus + projected_private_pension), 2)
+
+    return render(request, "dashboard/dashboard_retirement.html", {
+        'total_retirement_savings': total_retirement_savings,
+        'zus': zus,
+        'private_pension_plan': private_pension_plan,
+        'invested_capital': invested_capital,
+        'cash_amount': cash,
+        'perc_of_million': perc_of_million,
+        'diff_to_million': diff_to_million,
+        'projected_pension': projected_pension,
         'asset_labels': json.dumps(allocation['labels']),
         'asset_data': json.dumps(allocation['data']),
         'projection_labels': json.dumps(capital_projection['labels']),

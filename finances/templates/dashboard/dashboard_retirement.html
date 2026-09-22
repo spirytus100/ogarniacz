@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+
+{% block title %}Emerytura{% endblock %}
+<style>
+    /* Niestandardowe style dla trybu Dark Mode */
+    .finance-dashboard {
+        background-color: #121212;
+        color: #e0e0e0;
+        padding: 20px;
+        border-radius: 12px;
+    }
+    .finance-dashboard .card {
+        background-color: #1e1e2f;
+        border: 1px solid #2b2b40;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .finance-dashboard .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+    }
+    .finance-dashboard .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .finance-dashboard .text-muted {
+        color: #a0a0b5 !important;
+    }
+    .finance-dashboard .table-dark {
+        --bs-table-bg: transparent;
+        --bs-table-color: #e0e0e0;
+        --bs-table-border-color: #2b2b40;
+    }
+</style>
+
+{% block section_header %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+        <h1 class="h2">Przegląd Emerytury</h1>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="finance-dashboard" data-bs-theme="dark">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0 fw-bold">Przegląd Emerytury</h2>
+        <span class="badge bg-primary rounded-pill px-3 py-2">Aktualizacja: Dziś</span>
+    </div>
+
+    <!-- RZĄD 1: Główne wskaźniki (KPIs) -->
+    <div class="row g-4 mb-4">
+        <!-- Całkowite oszczędności -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fs-6">Całkowite oszczędności emerytalne</p>
+                        <h4 class="mb-0 fw-bold text-white">{{ total_retirement_savings }} PLN</h4>
+                    </div>
+                    <div class="icon-box bg-primary bg-opacity-25 text-primary">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Oszczędności normalne -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fs-6">ZUS</p>
+                        <h4 class="mb-0 fw-bold text-white">{{ zus }} PLN</h4>
+                    </div>
+                    <div class="icon-box bg-success bg-opacity-25 text-success">
+                        <i class="bi bi-bank"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fs-6">III Filar</p>
+                        <h4 class="mb-0 fw-bold text-white">{{ private_pension_plan }} PLN</h4>
+                    </div>
+                    <div class="icon-box bg-warning bg-opacity-25 text-warning">
+                        <i class="bi bi-piggy-bank"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oszczędności na emeryturę (IKE/IKZE) -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fs-6">Kapitał pracujący</p>
+                        <h4 class="mb-0 fw-bold text-white">{{ invested_capital }}%</h4>
+                    </div>
+                    <div class="icon-box bg-warning bg-opacity-25 text-warning">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ilość gotówki -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1 fs-6">Gotówka (wolne środki)</p>
+                        <h4 class="mb-0 fw-bold text-white">{{ cash_amount }} PLN</h4>
+                    </div>
+                    <div class="icon-box bg-info bg-opacity-25 text-info">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RZĄD 2: Wykresy -->
+    <div class="row g-4 mb-4">
+        <!-- Struktura aktywów (Wykres kołowy) -->
+        <div class="col-lg-4">
+            <div class="card h-100 p-3">
+                <h5 class="card-title fw-bold mb-4">Struktura Aktywów</h5>
+                <div class="position-relative" style="height: 250px;">
+                    <canvas id="assetsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projekcja wzrostu kapitału (Wykres liniowy) -->
+        <div class="col-lg-8">
+            <div class="card h-100 p-3">
+                <h5 class="card-title fw-bold mb-4">Projekcja Wzrostu Kapitału (do 2050)</h5>
+                <div class="position-relative" style="height: 250px;">
+                    <canvas id="projectionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RZĄD 3: Dodatkowe sekcje (Progres, Dochód Pasywny, Ostatnie Operacje) -->
+    <div class="row g-4">
+        <!-- Lewa kolumna na mniejsze widgety -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            
+            <!-- Cel finansowy (Progres) -->
+            <div class="card p-3">
+                <h5 class="card-title fw-bold mb-3">Droga do miliona</h5>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted fs-6">Postęp</span>
+                    <span class="text-white fw-bold">{{ perc_of_million }}%</span>
+                </div>
+                <div class="progress" style="height: 10px; background-color: #2b2b40;">
+                    <div class="progress-bar bg-success" 
+                        role="progressbar" 
+                        style="width: {{ perc_of_million|floatformat:'2u' }}%;" 
+                        aria-valuenow="{{ perc_of_million|floatformat:'2u' }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Zostało: {{ diff_to_million }} PLN</small>
+            </div>
+
+            <!-- Dochód pasywny (Dywidendy itp.) -->
+            <div class="card p-3">
+                <h5 class="card-title fw-bold mb-3">Szacowana emerytura (m-c)</h5>
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-purple bg-opacity-25 text-white me-3" style="background-color: rgba(111, 66, 193, 0.25); color: #b197fc !important;">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold text-white">{{ projected_pension }} PLN</h3>
+                        <small class="text-success"><i class="bi bi-arrow-up-short"></i>+X% r/r</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ostatnie transakcje -->
+        <div class="col-lg-8">
+            <div class="card h-100 p-3">
+                <h5 class="card-title fw-bold mb-3">Ostatnie ruchy kapitału</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Data</th>
+                                <th scope="col">Kategoria</th>
+                                <th scope="col">Opis</th>
+                                <th scope="col" class="text-end">Kwota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Tutaj pętla Django: {% for tx in transactions %} -->
+                            <tr>
+                                <td>06 Wrz 2026</td>
+                                <td><span class="badge bg-success bg-opacity-25 text-success">Wpłata</span></td>
+                                <td>Zasilenie IKE - Przelew bankowy</td>
+                                <td class="text-end text-success">+ 2 000,00 PLN</td>
+                            </tr>
+                            <tr>
+                                <td>01 Wrz 2026</td>
+                                <td><span class="badge bg-info bg-opacity-25 text-info">Dywidenda</span></td>
+                                <td>Dywidenda - S&P 500 ETF</td>
+                                <td class="text-end text-info">+ 124,50 PLN</td>
+                            </tr>
+                            <tr>
+                                <td>28 Sie 2026</td>
+                                <td><span class="badge bg-warning bg-opacity-25 text-warning">Inwestycja</span></td>
+                                <td>Zakup obligacji skarbowych (EDO)</td>
+                                <td class="text-end text-danger">- 5 000,00 PLN</td>
+                            </tr>
+                            <!-- {% endfor %} -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    Chart.defaults.color = '#a0a0b5';
+    Chart.defaults.borderColor = '#2b2b40';
+
+    // Obszerna paleta żywych kolorów dopasowanych do Dark Mode
+    const chartColors = [
+        '#3b82f6', // Niebieski
+        '#10b981', // Szmaragdowy (Zielony)
+        '#f59e0b', // Bursztynowy
+        '#8b5cf6', // Fioletowy
+        '#ec4899', // Różowy
+        '#0ea5e9', // Błękitny
+        '#ef4444', // Czerwony
+        '#14b8a6', // Morski (Teal)
+        '#f97316', // Pomarańczowy
+        '#84cc16', // Limonkowy
+        '#6366f1', // Indygo
+        '#eab308', // Żółty
+        '#d946ef', // Fuksja
+        '#06b6d4', // Cyjan
+        '#f43f5e', // Malinowy (Rose)
+        '#22c55e', // Jasnozielony
+        '#a855f7', // Purpurowy
+        '#64748b'  // Szaroniebieski (Dla np. "Bez kategorii")
+    ];
+
+    const ctxAssets = document.getElementById('assetsChart').getContext('2d');
+    
+    // Dane przesyłane z Django
+    const labelsData = {{ asset_labels|safe }};
+    const valuesData = {{ asset_data|safe }};
+
+    new Chart(ctxAssets, {
+        type: 'doughnut',
+        data: {
+            labels: labelsData,
+            datasets: [{
+                data: valuesData,
+                // Przypinamy listę kolorów (jeśli kategorii jest więcej niż kolorów, Chart.js użyje ich ponownie, 
+                // ale przy 18 kolorach raczej to nie grozi)
+                backgroundColor: chartColors,
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        color: '#e0e0e0' // jaśniejsza czcionka w legendzie
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.label + ': ' + context.parsed + '%';
+                        }
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // 2. Wykres projekcji wzrostu kapitału (Line)
+    const ctxProjection = document.getElementById('projectionChart').getContext('2d');
+    
+    // Generowanie gradientu pod wykresem liniowym
+    let gradient = ctxProjection.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)'); // Zielony półprzezroczysty
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)'); // Przezroczysty
+
+    new Chart(ctxProjection, {
+        type: 'line',
+        data: {
+            labels: {{ projection_labels|safe }},
+            datasets: [{
+                label: 'Kapitał (PLN)',
+                // Symulowane dane (w Django: {{ projection_data|safe }})
+                data: {{ projection_data|safe }},
+                borderColor: '#10b981',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                pointBackgroundColor: '#121212',
+                pointBorderColor: '#10b981',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.4 // Krzywizna linii (smoothening)
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // Ukrywamy legendę, bo mamy tylko 1 zbiór danych
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y.toLocaleString('pl-PL') + ' PLN';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value / 1000 + 'k'; // Skrócenie zer (np. 300k)
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
