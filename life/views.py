@@ -148,6 +148,7 @@ def activity_dashboard(request):
     # 1. Inicjalizacja domyślnych wartości postępu na 0%
     progress_data = {
         'russian': 0,
+        'english': 0,
         'reading': 0,
         'writing': 0,
         'criticism': 0,
@@ -155,6 +156,7 @@ def activity_dashboard(request):
 
     descriptions = {
         'russian': '',
+        'english': '',
         'reading': '',
         'writing': '',
         'criticism': '',
@@ -164,6 +166,7 @@ def activity_dashboard(request):
     # Dopasuj stringi do tego, jak dokładnie nazywają się w bazie!
     category_mapping = {
         'Język rosyjski': 'russian',
+        'Język angielski': 'english',
         'Czytanie': 'reading',
         'Pisanie': 'writing',
         'Krytyka literacka': 'criticism'
@@ -209,10 +212,12 @@ def activity_dashboard(request):
     # Przekazanie kontekstu do szablonu
     context = {
         'progress_russian': progress_data['russian'],
+        'progress_english': progress_data['english'],
         'progress_reading': progress_data['reading'],
         'progress_writing': progress_data['writing'],
         'progress_criticism': progress_data['criticism'],
         'description_russian': descriptions['russian'],
+        'description_english': descriptions['english'],
         'description_reading': descriptions['reading'],
         'description_writing': descriptions['writing'],
         'description_criticism': descriptions['criticism'],
