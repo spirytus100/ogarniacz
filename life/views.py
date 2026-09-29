@@ -1,4 +1,5 @@
 import datetime
+from math import floor
 
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -145,7 +146,7 @@ def activity_details(request, pk):
 def activity_dashboard(request):
     today = datetime.date.today()
 
-    # 1. Inicjalizacja domyślnych wartości postępu na 0%
+    # 1. Inicjalizacja domyślnych wartości postępu na 0 (procent lub godzin)
     progress_data = {
         'russian': 0,
         'english': 0,
@@ -178,7 +179,7 @@ def activity_dashboard(request):
         end_date__gte=today
     )
 
-    # 3. Obliczanie procentów dla każdej kategorii
+    # 3. Obliczanie wartości/procentów dla każdej kategorii
     for goal in active_goals:
         # Zakładam, że kategoria ma pole tekstowe, które przechowuje nazwę (np. kategoria.name)
         category_name = goal.activity.name  
@@ -194,11 +195,18 @@ def activity_dashboard(request):
                 name=goal.activity,
                 date__range=(goal.start_date, goal.end_date)
             ).aggregate(total=Sum('duration'))['total'] or 0
+
+            activities_sum = floor(activities_sum / 60)  # Konwersja minut na godziny
             
-            # Wyliczamy procent (unikamy dzielenia przez zero)
-            if goal.goal_duration > 0:
-                percent = int((activities_sum / goal.goal_duration) * 100)
-                progress_data[dict_key] = min(percent, 100)  # Max 100%
+            # Rozdzielenie logiki przypisywania wartości w zależności od kategorii
+            if dict_key in ['reading', 'writing', 'criticism']:
+                # Zwracanie wartości absolutnej (liczba godzin nauki)
+                progress_data[dict_key] = activities_sum
+            else:
+                # Zwracanie procentu zdefiniowanego celu dla pozostałych (języki)
+                if goal.goal_duration > 0:
+                    percent = int((activities_sum / goal.goal_duration) * 100)
+                    progress_data[dict_key] = min(percent, 100)  # Max 100%
 
     # 4. Pobieranie ostatnich aktywności do Timeline'u (np. najnowsze 5)
     recent_activities = Activity.objects.select_related('name').order_by('-date', '-id')[:5]
