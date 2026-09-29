@@ -195,11 +195,12 @@ def activity_dashboard(request):
                 name=goal.activity,
                 date__range=(goal.start_date, goal.end_date)
             ).aggregate(total=Sum('duration'))['total'] or 0
-
-            activities_sum = floor(activities_sum / 60)  # Konwersja minut na godziny
             
             # Rozdzielenie logiki przypisywania wartości w zależności od kategorii
             if dict_key in ['reading', 'writing', 'criticism']:
+
+                activities_sum = floor(activities_sum / 60)  # Konwersja minut na godziny
+                
                 # Zwracanie wartości absolutnej (liczba godzin nauki)
                 progress_data[dict_key] = activities_sum
             else:
