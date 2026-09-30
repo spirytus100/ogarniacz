@@ -26,5 +26,9 @@ class ExchangeRateAdmin(admin.ModelAdmin):
 class FinancialAccountAdmin(admin.ModelAdmin):
     list_display = ['name', 'cash', 'retirement']
 
+@admin.register(RetirementTarget)
+class RetirementTargetAdmin(admin.ModelAdmin):
+    list_display = ['category', 'target_percentage']
+
 
 admin.site.register([InvestmentCategory, IncomeCategory, WealthChange])

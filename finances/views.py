@@ -11,7 +11,7 @@ from django.db.models import F, Subquery, OuterRef, DecimalField, ExpressionWrap
 from django.db.models.functions import Coalesce, Cast
 import constance
 
-from .models import Investment, Income, ExchangeRate, Crypto, FinancialAccount
+from .models import Investment, Income, ExchangeRate, Crypto, FinancialAccount, InvestmentCategory, RetirementTarget
 
 from .forms import InvestmentForm, IncomeForm, FinancialAccountForm
 
@@ -241,6 +241,123 @@ def get_projected_pension_zus():
     return round(Decimal(projected_pension_zus), 2)
 
 
+def get_retirement_portfolio_context(target_percentages=None):
+    """
+    Zwraca kontekst dla szablonu z podsumowaniem portfela emerytalnego.
+    
+    :param target_percentages: dict np. {'Akcje': Decimal('60.0'), 'Obligacje': Decimal('40.0')}
+    """
+    if target_percentages is None:
+        target_percentages = {}
+
+    # 1. Inicjalizacja słownika z kategoriami (pobieramy WSZYSTKIE kategorie)
+    # Nawet jeśli nie mają aktywnych inwestycji, zaczną z wartością 0.00
+    categories = InvestmentCategory.objects.all()
+    category_data = {
+        cat.name: {
+            'current_value': Decimal('0.00'),
+            'target_percentage': target_percentages.get(cat.name, Decimal('0.00'))
+        }
+        for cat in categories
+    }
+    
+    # Dodajemy wirtualną kategorię dla inwestycji bez przypisanej kategorii w bazie (opcjonalnie)
+    category_data['Bez kategorii'] = {
+        'current_value': Decimal('0.00'),
+        'target_percentage': Decimal('0.00')
+    }
+
+    # 2. Pobieramy wszystkie aktywne inwestycje z kont emerytalnych
+    # Używamy select_related, aby uniknąć problemu N+1 zapytań do bazy
+    active_retirement_investments = Investment.objects.filter(
+        active=True,
+        financial_account_id__retirement=True
+    ).select_related('category_id')
+
+    total_portfolio_value = Decimal('0.00')
+
+    # 3. Sumowanie aktualnej wartości inwestycji dla każdej kategorii
+    for inv in active_retirement_investments:
+        # Obliczamy aktualnie posiadaną ilość (uwzględniając ew. częściową sprzedaż)
+        sell_qty = inv.sell_quantity if inv.sell_quantity else 0
+        current_qty = Decimal(inv.buy_quantity - sell_qty)
+        
+        # Wybieramy cenę (jeśli jest current_price to ją, jeśli nie to buy_price)
+        price = inv.current_price if inv.current_price else inv.buy_price
+        
+        # Wartość danej inwestycji
+        # Uwaga: pomijamy przewalutowania (exchange_rate_id) dla uproszczenia. 
+        # W środowisku produkcyjnym należałoby tutaj przeliczyć cenę na walutę bazową.
+        inv_value = current_qty * price
+
+        # Dodajemy do odpowiedniej kategorii
+        cat_name = inv.category_id.name if inv.category_id else 'Bez kategorii'
+        if cat_name in category_data:
+            category_data[cat_name]['current_value'] += inv_value
+            total_portfolio_value += inv_value
+
+    # [Opcjonalne] Doliczenie wolnej gotówki z kont emerytalnych do wielkości portfela:
+    # retirement_cash = FinancialAccount.objects.filter(retirement=True).aggregate(
+    #     total=Sum('cash')
+    # )['total'] or Decimal('0.00')
+    # total_portfolio_value += retirement_cash
+
+    # 4. Obliczanie statystyk, procentów i różnic dla szablonu
+    portfolio_breakdown = []
+    
+    for cat_name, data in category_data.items():
+        current_value = data['current_value']
+        target_percentage = data['target_percentage']
+        
+        # Procent aktualny
+        if total_portfolio_value > 0:
+            current_percentage = (current_value / total_portfolio_value) * Decimal('100.0')
+        else:
+            current_percentage = Decimal('0.00')
+            
+        # Docelowa kwota (jaka powinna być zainwestowana na podstawie docelowego %)
+        target_value = (target_percentage / Decimal('100.0')) * total_portfolio_value
+        
+        # Różnica w wartości (ujemna = niedowaga / trzeba dokupić, dodatnia = przeważenie)
+        value_difference = current_value - target_value
+        
+        # Różnica procentowa
+        percentage_difference = current_percentage - target_percentage
+        
+        # Dodajemy tylko te "Bez kategorii", jeśli faktycznie mają jakieś środki
+        if cat_name == 'Bez kategorii' and current_value == 0:
+            continue
+
+        portfolio_breakdown.append({
+            'category_name': cat_name,
+            'current_value': round(current_value, 2),
+            'current_percentage': round(current_percentage, 2),
+            'target_percentage': round(target_percentage, 2),
+            'target_value': round(target_value, 2),
+            'value_difference': round(value_difference, 2),
+            'percentage_difference': round(percentage_difference, 2),
+        })
+
+    portfolio_breakdown.sort(key=lambda x: x['target_value'], reverse=True)
+
+    # Zwracany słownik - można go bezpośrednio wstrzyknąć do kontekstu widoku Django
+    return {
+        'portfolio_breakdown': portfolio_breakdown,
+        'total_portfolio_value': round(total_portfolio_value, 2),
+    }
+
+
+def get_retirement_targets():
+    """
+    Zwraca słownik z docelowymi procentami dla każdej kategorii inwestycyjnej.
+    Klucz: nazwa kategorii, Wartość: docelowy procent (Decimal)
+    """
+    targets = RetirementTarget.objects.select_related('category').all()
+    target_dict = {target.category.name: target.target_percentage for target in targets if target.category}
+    return target_dict
+
+
+
 def index(request):
     total_savings = round(get_total_wealth(), 2)
     normal_savings = round(get_savings(), 2)
@@ -250,6 +367,10 @@ def index(request):
     passive_income = get_passive_income()
     allocation = get_asset_allocation()
     capital_projection = get_capital_projection(total_savings, constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION, constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN)
+    capital_projection_parameters = {
+            'annual_contribution': constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION,
+            'annual_return': round(constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN * 100)
+        }
 
     return render(request, "dashboard/dashboard_finances.html", {
         'total_savings': total_savings, 
@@ -262,7 +383,8 @@ def index(request):
         'asset_labels': json.dumps(allocation['labels']),
         'asset_data': json.dumps(allocation['data']),
         'projection_labels': json.dumps(capital_projection['labels']),
-        'projection_data': json.dumps(capital_projection['data']),})
+        'projection_data': json.dumps(capital_projection['data']),
+        'capital_projection_parameters': capital_projection_parameters})
 
 
 def retirement(request):
@@ -272,12 +394,17 @@ def retirement(request):
     cash = round(get_cash_total(retirement=True), 2)
     invested_capital = round(get_invested_capital(private_pension_plan, cash), 2)
     perc_of_million, diff_to_million = path_to_million(total_retirement_savings)
-    passive_income = get_passive_income()
     allocation = get_asset_allocation(retirement=True)
     capital_projection = get_capital_projection(private_pension_plan, constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION, constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN)
+    capital_projection_parameters = {
+        'annual_contribution': constance.config.CAPITAL_PROJECTION_ANNUAL_CONTRIBUTION,
+        'annual_return': round(constance.config.CAPITAL_PROJECTION_ANNUAL_RETURN * 100)
+    }
     projected_pension_zus = get_projected_pension_zus()
     projected_private_pension = private_pension_plan / constance.config.LIFE_EXPECTANCY
     projected_pension = round(Decimal(projected_pension_zus + projected_private_pension), 2)
+    retirement_portfolio = get_retirement_portfolio_context(target_percentages=get_retirement_targets())
+
 
     return render(request, "dashboard/dashboard_retirement.html", {
         'total_retirement_savings': total_retirement_savings,
@@ -291,7 +418,9 @@ def retirement(request):
         'asset_labels': json.dumps(allocation['labels']),
         'asset_data': json.dumps(allocation['data']),
         'projection_labels': json.dumps(capital_projection['labels']),
-        'projection_data': json.dumps(capital_projection['data']),})
+        'projection_data': json.dumps(capital_projection['data']),
+        'retirement_portfolio': retirement_portfolio,
+        'capital_projection_parameters': capital_projection_parameters})
 
 
 ### Inwestycje ###

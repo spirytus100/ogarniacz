@@ -145,7 +145,7 @@
         <!-- Projekcja wzrostu kapitału (Wykres liniowy) -->
         <div class="col-lg-8">
             <div class="card h-100 p-3">
-                <h5 class="card-title fw-bold mb-4">Projekcja Wzrostu Kapitału (do 2050)</h5>
+                <h5 class="card-title fw-bold mb-4">Projekcja Wzrostu Kapitału do 2050 roku ({{ capital_projection_parameters.annual_contribution }} PLN/rok, {{ capital_projection_parameters.annual_return }}% ROI)</h5>
                 <div class="position-relative" style="height: 250px;">
                     <canvas id="projectionChart"></canvas>
                 </div>
@@ -195,38 +195,38 @@
         <!-- Ostatnie transakcje -->
         <div class="col-lg-8">
             <div class="card h-100 p-3">
-                <h5 class="card-title fw-bold mb-3">Ostatnie ruchy kapitału</h5>
+                <h5 class="card-title fw-bold mb-3">Progi kategorii</h5>
                 <div class="table-responsive">
                     <table class="table table-dark table-hover align-middle mb-0">
                         <thead>
                             <tr>
-                                <th scope="col">Data</th>
-                                <th scope="col">Kategoria</th>
-                                <th scope="col">Opis</th>
-                                <th scope="col" class="text-end">Kwota</th>
+                                <th>Kategoria</th>
+                                <th>Zainwestowano</th>
+                                <th>Obecny %</th>
+                                <th>Docelowy %</th>
+                                <th>Docelowa kwota</th>
+                                <th>Różnica (kwota)</th>
+                                <th>Różnica (%)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Tutaj pętla Django: {% for tx in transactions %} -->
-                            <tr>
-                                <td>06 Wrz 2026</td>
-                                <td><span class="badge bg-success bg-opacity-25 text-success">Wpłata</span></td>
-                                <td>Zasilenie IKE - Przelew bankowy</td>
-                                <td class="text-end text-success">+ 2 000,00 PLN</td>
-                            </tr>
-                            <tr>
-                                <td>01 Wrz 2026</td>
-                                <td><span class="badge bg-info bg-opacity-25 text-info">Dywidenda</span></td>
-                                <td>Dywidenda - S&P 500 ETF</td>
-                                <td class="text-end text-info">+ 124,50 PLN</td>
-                            </tr>
-                            <tr>
-                                <td>28 Sie 2026</td>
-                                <td><span class="badge bg-warning bg-opacity-25 text-warning">Inwestycja</span></td>
-                                <td>Zakup obligacji skarbowych (EDO)</td>
-                                <td class="text-end text-danger">- 5 000,00 PLN</td>
-                            </tr>
-                            <!-- {% endfor %} -->
+                            {% for item in retirement_portfolio.portfolio_breakdown %}
+                                <tr>
+                                    <td>{{ item.category_name }}</td>
+                                    <td>{{ item.current_value }} PLN</td>
+                                    <td>{{ item.current_percentage }}%</td>
+                                    <td>{{ item.target_percentage }}%</td>
+                                    <td>{{ item.target_value }} PLN</td>
+                                    
+                                    <!-- Kolorowanie na zielono (nadmiar) i czerwono (brakuje) -->
+                                    <td class="{% if item.value_difference < 0 %}text-danger{% elif item.value_difference > 0 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ item.value_difference }} PLN
+                                    </td>
+                                    <td class="{% if item.percentage_difference < 0 %}text-danger{% elif item.percentage_difference > 0 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ item.percentage_difference }}%
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
