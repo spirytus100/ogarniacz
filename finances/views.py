@@ -252,7 +252,7 @@ def get_retirement_portfolio_context(target_percentages=None):
 
     # 1. Inicjalizacja słownika z kategoriami (pobieramy WSZYSTKIE kategorie)
     # Nawet jeśli nie mają aktywnych inwestycji, zaczną z wartością 0.00
-    categories = InvestmentCategory.objects.all()
+    categories = InvestmentCategory.objects.exclude(name="Fundusze inwestycyjne").all()  # Wykluczamy kategorię "Gotówka", jeśli jest w bazie
     category_data = {
         cat.name: {
             'current_value': Decimal('0.00'),
