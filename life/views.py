@@ -143,6 +143,47 @@ def activity_details(request, pk):
     return render(request, "activities/activity_details.html", context)
 
 
+def calculate_learning_daily_7d_average(activity_name):
+    today = datetime.date.today()
+    seven_days_ago = today - datetime.timedelta(days=7)
+
+    # Pobieramy wszystkie aktywności z ostatnich 7 dni dla danej kategorii
+    recent_activities = Activity.objects.filter(
+        name__name=activity_name,
+        date__range=(seven_days_ago, today)
+    )
+
+    # Sumujemy czas trwania aktywności w minutach
+    total_duration = recent_activities.aggregate(total=Sum('duration'))['total'] or 0
+
+    # Obliczamy średnią dzienną (w minutach)
+    average_daily_duration = total_duration / 7
+
+    print(f"Average daily duration for {activity_name}: {average_daily_duration} minutes")  # Debugging output
+    return average_daily_duration
+
+
+def calculate_time_left_for_learning(end_goal, current_amount, daily_average):
+    difference = end_goal - current_amount
+    difference_in_days = round(difference / daily_average) if daily_average > 0 else float('inf')  # Unikamy dzielenia przez zero
+    years = difference_in_days // 365
+    months = (difference_in_days % 365) // 30
+    days = (difference_in_days % 365) % 30
+    return years, months, days
+
+
+def get_time_string(years, months, days):
+    time_parts = []
+    if years > 0:
+        time_parts.append(f"{years} {'rok' if years == 1 else 'lata' if 2 <= years <= 4 else 'lat'}")
+    if months > 0:
+        time_parts.append(f"{months} {'miesiąc' if months == 1 else 'miesiące' if 2 <= months <= 4 else 'miesięcy'}")
+    if days > 0:
+        time_parts.append(f"{days} {'dzień' if days == 1 else 'dni'}")
+
+    return ', '.join(time_parts) if time_parts else "0 dni"
+
+
 def activity_dashboard(request):
     today = datetime.date.today()
 
@@ -217,6 +258,25 @@ def activity_dashboard(request):
     streak_active = streak > 0  # True jeśli streak jest większy niż 0, False w przeciwnym razie
     print(f"Streak: {streak}, Active: {streak_active}")  # Debugging output
 
+    # 6. Obliczanie pozostałego czasu do nauki
+
+    time_left_english = calculate_time_left_for_learning(
+        end_goal=ActivityGoal.objects.filter(activity__name='Język angielski').first().goal_duration if ActivityGoal.objects.filter(activity__name='Język angielski').exists() else 0,
+        current_amount=Activity.objects.filter(name__name='Język angielski').aggregate(total=Sum('duration'))['total'] or 0,
+        daily_average=calculate_learning_daily_7d_average('Język angielski')
+    )
+
+    print(f"Time left for English: {time_left_english}")  # Debugging output
+
+    time_left_english_string = get_time_string(*time_left_english)  # Możesz użyć tej funkcji, aby uzyskać czytelny string czasu
+
+    time_left_russian = calculate_time_left_for_learning(
+        end_goal=ActivityGoal.objects.filter(activity__name='Język rosyjski').first().goal_duration if ActivityGoal.objects.filter(activity__name='Język rosyjski').exists() else 0,
+        current_amount=Activity.objects.filter(name__name='Język rosyjski').aggregate(total=Sum('duration'))['total'] or 0,
+        daily_average=calculate_learning_daily_7d_average('Język rosyjski')
+    )
+
+    time_left_russian_string = get_time_string(*time_left_russian)  # Możesz użyć tej funkcji, aby uzyskać czytelny string czasu
 
     # Przekazanie kontekstu do szablonu
     context = {
@@ -235,6 +295,8 @@ def activity_dashboard(request):
         'recent_activities': recent_activities,
         'current_daily_word': config.CURRENT_DAILY_WORD.title() if config.CURRENT_DAILY_WORD else '',
         'current_daily_word_description': config.CURRENT_DAILY_WORD_DESCRIPTION,
+        'time_left_english_string': time_left_english_string,
+        'time_left_russian_string': time_left_russian_string,
     }
     
     return render(request, 'activities/dashboard.html', context)

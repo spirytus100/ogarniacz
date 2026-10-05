@@ -27,7 +27,7 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="card-subtitle text-success">Język Angielski</h6>
-                    <i class="bi bi-book fs-4"></i>
+                    <i class="bi bi-translate fs-4"></i>
                 </div>
                 <h3 class="card-title fw-bold">{{ progress_english }}%</h3>
                 <div class="progress bg-secondary" style="height: 10px;">
@@ -82,6 +82,30 @@
                     <div class="progress-bar bg-danger shadow-sm" role="progressbar" style="width: {{ progress_criticism }}%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <small class="text-muted d-block mt-2">{{ description_criticism }}</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card bg-dark border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle text-success">Język Angielski</h6>
+                    <i class="bi bi-translate fs-4"></i>
+                </div>
+                <h3 class="card-title fw-bold mt-3">{{ time_left_english_string }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card bg-dark border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle text-success">Język Rosyjski</h6>
+                    <i class="bi bi-translate fs-4"></i>
+                </div>
+                <h3 class="card-title fw-bold mt-3">{{ time_left_russian_string }}</h3>
             </div>
         </div>
     </div>
