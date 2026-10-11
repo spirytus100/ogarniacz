@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Produktywność{% endblock %}
+{% block title %}Nauka{% endblock %}
 
 {% block section_header %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-    <h1 class="h2">Produktywność</h1>
-    <a href="{% url 'new_activity' %}" class="btn btn-success btn-sm">Nowa aktywność</a>
+    <h1 class="h2">Nauka</h1>
+    <a href="{% url 'new_learning' %}" class="btn btn-success btn-sm">Nowa aktywność</a>
 </div>
 {% endblock %}
 
@@ -17,7 +17,7 @@
     
     <!-- NAGŁÓWEK / WITAJ -->
     <div class="col-12 mb-2">
-        <h2 class="fw-bold">Witaj w Centrum Produktywności, <span class="text-primary">Jarek</span>!</h2>
+        <h2 class="fw-bold">Witaj w Centrum Nauki, <span class="text-primary">Jarek</span>!</h2>
         <p class="text-secondary">Oto Twoje postępy na dzisiaj.</p>
     </div>
 
@@ -118,7 +118,7 @@
         <div class="card bg-dark border-secondary h-100">
             <div class="card-header border-secondary bg-transparent d-flex justify-content-between">
                 <h5 class="mb-0">Historia Produktywności</h5>
-                <a href="{% url 'activities' %}" class="btn btn-sm btn-outline-light">Zobacz wszystko</a>
+                <a href="{% url 'learning' %}" class="btn btn-sm btn-outline-light">Zobacz wszystko</a>
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush bg-transparent">
@@ -172,6 +172,12 @@
         </div>
     </div>
 
+    <div class="col-12">
+        <div style="position: relative; height: 400px; width: 100%;">
+            <canvas id="studyTimeChart"></canvas>
+        </div>
+    </div>
+
 </div>
 
 <!-- Opcjonalne: Dodaj ikony Bootstrap Icons w head strony -->
@@ -181,68 +187,64 @@
 
 {% block extra_js %}
 <script>
-        // Odbieramy dane przekazane z widoku Django
-        const labels = {{ chart_context.labels|safe }};
-        const expenseData = {{ chart_context.expense_data|safe }};
-        const incomeData = {{ chart_context.income_data|safe }};
+    document.addEventListener("DOMContentLoaded", function() {
+        // Zmienne przekazane z widoku Django
+        const labels = {{ chart_labels|safe }};
+        const datasets = {{ chart_datasets|safe }};
 
-        // Ustawienie jasnego koloru dla wszystkich tekstów (osie, legenda, tytuł)
-        Chart.defaults.color = '#e0e0e0'; 
-
-        // Ustawienie jasnych, delikatnych linii siatki i obramowań
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)'; 
-
-        // Konfiguracja i inicjalizacja wykresu
-        const ctx = document.getElementById('financeChart').getContext('2d');
-        const financeChart = new Chart(ctx, {
+        const ctx = document.getElementById('studyTimeChart').getContext('2d');
+        
+        const studyTimeChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
-                datasets:[
-                    {
-                        label: 'Przychody',
-                        data: incomeData,
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',  // Kolor wypełnienia (zielonkawy)
-                        borderColor: 'rgba(75, 192, 192, 1)',      // Kolor obramowania
-                        borderWidth: 1,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Wydatki',
-                        data: expenseData,
-                        backgroundColor: 'rgba(255, 99, 132, 0.7)', // Kolor wypełnienia (czerwonawy)
-                        borderColor: 'rgba(255, 99, 132, 1)',     // Kolor obramowania
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }
-                ]
+                labels: labels, // Lista dni (np. ['12.09', '13.09', ...])
+                datasets: datasets // Lista słowników z danymi poszczególnych przedmiotów
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false, // Pozwala wykresowi dopasować się do wysokości kontenera
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Przychody vs Wydatki (ostatnie 6 miesięcy)'
-                    },
                     tooltip: {
                         callbacks: {
+                            // Dostosowanie tekstu wyświetlanego po najechaniu
                             label: function(context) {
-                                // Dodajemy walutę do tooltipów
-                                return context.dataset.label + ': ' + context.parsed.y + ' zł';
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // Załóżmy, że dane przekazujesz w minutach
+                                    let minutes = context.parsed.y;
+                                    let h = Math.floor(minutes / 60);
+                                    let m = minutes % 60;
+                                    label += (h > 0 ? h + 'h ' : '') + m + 'm'; 
+                                }
+                                return label;
                             }
                         }
+                    },
+                    legend: {
+                        position: 'top',
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
+                    x: {
+                        stacked: true, // Kluczowe do nałożenia kolorów na jeden słupek
                         title: {
                             display: true,
-                            text: 'Kwota (zł)'
+                            text: 'Ostatnie 30 dni'
+                        }
+                    },
+                    y: {
+                        stacked: true, // Kluczowe do zsumowania wartości na osi Y
+                        title: {
+                            display: true,
+                            text: 'Czas nauki (minuty)'
                         }
                     }
                 }
             }
         });
-    </script>
+    });
+</script>
 {% endblock %}

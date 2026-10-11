@@ -5,7 +5,7 @@
 {% block section_header %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
     <h1 class="h2">Lista aktywności</h1>
-    <a href="{% url 'new_activity' %}" class="btn btn-success btn-sm">Nowa aktywność</a>
+    <a href="{% url 'new_learning' %}" class="btn btn-success btn-sm">Nowa aktywność</a>
 </div>
 {% endblock %}
 
@@ -23,7 +23,7 @@
         <tbody>
             {% for activity in page_obj %}
                 <tr>
-                    <td><a href="{% url 'activity_details' pk=activity.id %}">{{ activity.name }}</a></td>
+                    <td><a href="{% url 'learning_details' pk=activity.id %}">{{ activity.name }}</a></td>
                     <td>{{ activity.date }}</td>
                     <td>{{ activity.duration }} minut</td>
                 </tr>

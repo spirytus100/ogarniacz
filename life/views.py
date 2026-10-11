@@ -1,4 +1,5 @@
 import datetime
+import json
 from math import floor
 
 from django.http import HttpResponse
@@ -84,7 +85,7 @@ def task_details(request, pk):
 
 
 #Activities
-def activities(request):
+def learning(request):
     activities = Activity.objects.all().order_by('-date', '-id')
     paginator = Paginator(activities, 20)  # Pokaż 20 aktywności na stronie
     page_number = request.GET.get('page')
@@ -92,7 +93,7 @@ def activities(request):
     return render(request, "activities/index.html", {'page_obj': page_obj})
 
 
-def edit_activity(request, pk):
+def edit_learning(request, pk):
     activity = get_object_or_404(Activity, pk=pk)
 
     if request.method == "POST":
@@ -100,7 +101,7 @@ def edit_activity(request, pk):
 
         if form.is_valid():
             a = form.save()
-            return redirect('activity_dashboard')
+            return redirect('learning_dashboard')
         else:
             add_errors_to_messages(request, form)
     else:
@@ -110,13 +111,13 @@ def edit_activity(request, pk):
     return render(request, "activities/edit_activity.html", context)
 
 
-def new_activity(request):
+def new_learning(request):
     if request.method == "POST":
         form = ActivityForm(request.POST)
 
         if form.is_valid():
             activity = form.save()
-            return redirect('activity_dashboard')
+            return redirect('learning_dashboard')
         else:
             add_errors_to_messages(request, form)
     else:
@@ -126,18 +127,18 @@ def new_activity(request):
     return render(request, "activities/new_activity.html", context)
 
 
-def delete_activity(request, pk):
+def delete_learning(request, pk):
     activity = get_object_or_404(Activity, pk=pk)
 
     if request.method == "POST":
         activity.delete()
-        return redirect('activity_dashboard')
+        return redirect('learning_dashboard')
 
     context = {'activity': activity}
     return render(request, "activities/confirm_delete.html", context)
 
 
-def activity_details(request, pk):
+def learning_details(request, pk):
     activity = get_object_or_404(Activity, pk=pk)
     context = {'activity': activity}
     return render(request, "activities/activity_details.html", context)
@@ -184,10 +185,12 @@ def get_time_string(years, months, days):
     return ', '.join(time_parts) if time_parts else "0 dni"
 
 
-def activity_dashboard(request):
+def learning_dashboard(request):
     today = datetime.date.today()
 
-    # 1. Inicjalizacja domyślnych wartości postępu na 0 (procent lub godzin)
+    # --------------------------------------------------------
+    # 1. ORYGINALNA LOGIKA (Cele, Postępy, Zmienne bazowe)
+    # --------------------------------------------------------
     progress_data = {
         'russian': 0,
         'english': 0,
@@ -204,8 +207,6 @@ def activity_dashboard(request):
         'criticism': '',
     }
 
-    # Mapowanie nazw kategorii z bazy na klucze w słowniku
-    # Dopasuj stringi do tego, jak dokładnie nazywają się w bazie!
     category_mapping = {
         'Język rosyjski': 'russian',
         'Język angielski': 'english',
@@ -214,71 +215,113 @@ def activity_dashboard(request):
         'Krytyka literacka': 'criticism'
     }
 
-    # 2. Pobieramy tylko aktualne cele (gdzie dzisiaj mieści się w dacie celu)
     active_goals = ActivityGoal.objects.filter(
         start_date__lte=today, 
         end_date__gte=today
     )
 
-    # 3. Obliczanie wartości/procentów dla każdej kategorii
     for goal in active_goals:
-        # Zakładam, że kategoria ma pole tekstowe, które przechowuje nazwę (np. kategoria.name)
         category_name = goal.activity.name  
      
         if category_name in category_mapping:
             dict_key = category_mapping[category_name]
-
             descriptions[dict_key] = goal.description
             
-            # Sumujemy czas trwania aktywności z danego okresu
-            # Uwaga: w Twoim modelu Activity klucz obcy nazywa się 'name' (zamiast np. category)
             activities_sum = Activity.objects.filter(
                 name=goal.activity,
                 date__range=(goal.start_date, goal.end_date)
             ).aggregate(total=Sum('duration'))['total'] or 0
             
-            # Rozdzielenie logiki przypisywania wartości w zależności od kategorii
             if dict_key in ['reading', 'writing', 'criticism']:
-
-                activities_sum = floor(activities_sum / 60)  # Konwersja minut na godziny
-                
-                # Zwracanie wartości absolutnej (liczba godzin nauki)
+                activities_sum = floor(activities_sum / 60)
                 progress_data[dict_key] = activities_sum
             else:
-                # Zwracanie procentu zdefiniowanego celu dla pozostałych (języki)
                 if goal.goal_duration > 0:
                     percent = int((activities_sum / goal.goal_duration) * 100)
-                    progress_data[dict_key] = min(percent, 100)  # Max 100%
+                    progress_data[dict_key] = min(percent, 100)
 
-    # 4. Pobieranie ostatnich aktywności do Timeline'u (np. najnowsze 5)
     recent_activities = Activity.objects.select_related('name').order_by('-date', '-id')[:5]
 
-    # 5. Obliczanie streaku
-    streak = calculate_streak()  # Używamy funkcji z utils.py do obliczenia streaku
-    streak_active = streak > 0  # True jeśli streak jest większy niż 0, False w przeciwnym razie
-    print(f"Streak: {streak}, Active: {streak_active}")  # Debugging output
-
-    # 6. Obliczanie pozostałego czasu do nauki
+    streak = calculate_streak()
+    streak_active = streak > 0
+    print(f"Streak: {streak}, Active: {streak_active}") 
 
     time_left_english = calculate_time_left_for_learning(
         end_goal=ActivityGoal.objects.filter(activity__name='Język angielski').first().goal_duration if ActivityGoal.objects.filter(activity__name='Język angielski').exists() else 0,
         current_amount=Activity.objects.filter(name__name='Język angielski').aggregate(total=Sum('duration'))['total'] or 0,
         daily_average=calculate_learning_daily_7d_average('Język angielski')
     )
-
-    print(f"Time left for English: {time_left_english}")  # Debugging output
-
-    time_left_english_string = get_time_string(*time_left_english)  # Możesz użyć tej funkcji, aby uzyskać czytelny string czasu
+    print(f"Time left for English: {time_left_english}")
+    time_left_english_string = get_time_string(*time_left_english)
 
     time_left_russian = calculate_time_left_for_learning(
         end_goal=ActivityGoal.objects.filter(activity__name='Język rosyjski').first().goal_duration if ActivityGoal.objects.filter(activity__name='Język rosyjski').exists() else 0,
         current_amount=Activity.objects.filter(name__name='Język rosyjski').aggregate(total=Sum('duration'))['total'] or 0,
         daily_average=calculate_learning_daily_7d_average('Język rosyjski')
     )
+    time_left_russian_string = get_time_string(*time_left_russian)
 
-    time_left_russian_string = get_time_string(*time_left_russian)  # Możesz użyć tej funkcji, aby uzyskać czytelny string czasu
+    # --------------------------------------------------------
+    # 2. NOWA LOGIKA: DANE DO WYKRESU CHART.JS
+    # --------------------------------------------------------
+    
+    # a) Wygenerowanie ostatnich 30 dni chronologicznie (od najstarszego do dziś)
+    last_30_days = [today - datetime.timedelta(days=i) for i in range(29, -1, -1)]
+    chart_labels = [day.strftime("%d.%m") for day in last_30_days]
+    
+    # Słownik do szybkiego wyszukiwania indeksu dnia w liście
+    date_to_index = {day: index for index, day in enumerate(last_30_days)}
+    
+    # Lista przedmiotów do uwzględnienia na wykresie
+    chart_subjects = list(category_mapping.keys())
+    
+    # Przygotowanie pustej struktury danych: każdy przedmiot ma listę 30 zer
+    chart_data_by_subject = {subject: [0] * 30 for subject in chart_subjects}
+    
+    # b) Pobranie pogrupowanych danych z bazy (tylko 1 zapytanie!)
+    # Pobieramy datę, nazwę kategorii i sumę czasu, a następnie filtrujemy z ostatnich 30 dni
+    start_date_chart = last_30_days[0]
+    grouped_activities = Activity.objects.filter(
+        date__gte=start_date_chart,
+        date__lte=today,
+        name__name__in=chart_subjects
+    ).values('date', 'name__name').annotate(total_duration=Sum('duration'))
+    
+    # c) Wypełnienie struktury pobranymi danymi
+    for entry in grouped_activities:
+        activity_date = entry['date']
+        subject_name = entry['name__name']
+        total_time = entry['total_duration'] or 0
+        
+        # Jeśli data mieści się w naszym zakresie 30 dni i kategoria nas interesuje
+        if activity_date in date_to_index and subject_name in chart_data_by_subject:
+            day_index = date_to_index[activity_date]
+            # Przypisujemy czas nauki (w minutach) do odpowiedniego indeksu (dnia) dla danej kategorii
+            chart_data_by_subject[subject_name][day_index] += total_time
+            
+    # d) Kolory dla poszczególnych przedmiotów (zmieniaj dowolnie format: HEX lub RGBA)
+    subject_colors = {
+        'Język angielski':   {'bg': 'rgba(53, 162, 235, 0.75)', 'border': 'rgba(53, 162, 235, 1)'},   # Wyrazisty błękit
+        'Język rosyjski':    {'bg': 'rgba(255, 127, 80, 0.75)',  'border': 'rgba(255, 127, 80, 1)'},   # Ciepły koralowy / pomarańczowy (zamiast gryzącego czerwonego)
+        'Czytanie':          {'bg': 'rgba(75, 192, 122, 0.75)',  'border': 'rgba(75, 192, 122, 1)'},   # Miętowa zieleń (świetnie kontrastuje z błękitem i pomarańczem)
+        'Pisanie':           {'bg': 'rgba(255, 205, 86, 0.75)',  'border': 'rgba(255, 205, 86, 1)'},   # Stonowany złoty żółty (czytelny, nie oślepia)
+        'Krytyka literacka': {'bg': 'rgba(168, 85, 247, 0.75)',  'border': 'rgba(168, 85, 247, 1)'}   # Głęboki fiolet / purpura
+    }
+    
+    # e) Formatowanie datasets dla Chart.js
+    chart_datasets = []
+    for subject in chart_subjects:
+        chart_datasets.append({
+            "label": subject,
+            "data": chart_data_by_subject[subject],
+            "backgroundColor": subject_colors[subject]['bg'],
+            "borderColor": subject_colors[subject]['border'],
+            "borderWidth": 1
+        })
 
-    # Przekazanie kontekstu do szablonu
+    # --------------------------------------------------------
+    # 3. ZWRACANIE KONTEKSTU DO SZABLONU
+    # --------------------------------------------------------
     context = {
         'progress_russian': progress_data['russian'],
         'progress_english': progress_data['english'],
@@ -293,10 +336,14 @@ def activity_dashboard(request):
         'streak': streak,
         'streak_active': streak_active,
         'recent_activities': recent_activities,
-        'current_daily_word': config.CURRENT_DAILY_WORD.title() if config.CURRENT_DAILY_WORD else '',
-        'current_daily_word_description': config.CURRENT_DAILY_WORD_DESCRIPTION,
+        'current_daily_word': config.CURRENT_DAILY_WORD.title() if getattr(config, 'CURRENT_DAILY_WORD', None) else '',
+        'current_daily_word_description': getattr(config, 'CURRENT_DAILY_WORD_DESCRIPTION', ''),
         'time_left_english_string': time_left_english_string,
         'time_left_russian_string': time_left_russian_string,
+        
+        # Nowe zmienne przekazywane do wykresu JS
+        'chart_labels': json.dumps(chart_labels),
+        'chart_datasets': json.dumps(chart_datasets),
     }
     
     return render(request, 'activities/dashboard.html', context)

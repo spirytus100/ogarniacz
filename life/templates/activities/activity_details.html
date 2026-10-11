@@ -20,20 +20,20 @@
             <div class="d-flex justify-content-between mt-4">
                 
                 <!-- Przycisk po LEWEJ stronie -->
-                <a href="{% url 'activities' %}" class="btn btn-secondary">
+                <a href="{% url 'learning' %}" class="btn btn-secondary">
                     &laquo; Wróć do listy
                 </a>
 
                 <!-- Przyciski po PRAWEJ stronie (zgrupowane w dodatkowym divie) -->
                 <div>
                     <!-- Przycisk Edycji (Żółty/Ostrzegawczy) -->
-                    <a href="{% url 'edit_activity' pk=activity.id %}" class="btn btn-warning">
+                    <a href="{% url 'edit_learning' pk=activity.id %}" class="btn btn-warning">
                         Edytuj
                     </a>
                     
                     <!-- Przycisk Usuwania (Czerwony, z marginesem z lewej strony: ms-2) -->
                     <!-- Zakładam, że nazwa URL do usuwania to 'delete_income' -->
-                    <a href="{% url 'delete_activity' pk=activity.id %}" class="btn btn-danger ms-2">
+                    <a href="{% url 'delete_learning' pk=activity.id %}" class="btn btn-danger ms-2">
                         Usuń
                     </a>
                 </div>
