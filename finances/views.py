@@ -504,13 +504,7 @@ def edit_investment(request, pk):
 
         if form.is_valid():
             investment = form.save()
-
-            if not investment.retirement:
-                messages.success(request, "Inwestycja została zaktualizowana")
-                return redirect('list_of_investments')
-            else:
-                messages.success(request, "Inwestycja emerytalna została zaktualizowana")
-                return redirect('retirement_investments')
+            return redirect('list_of_investments')
             
         else:
             add_errors_to_messages(request, form)
@@ -527,13 +521,8 @@ def new_investment(request):
 
         if form.is_valid():
             investment = form.save()
-
-            if not investment.retirement:
-                messages.success(request, "Inwestycja została dodana")
-                return redirect('list_of_investments')
-            else:
-                messages.success(request, "Inwestycja emerytalna została dodana")
-                return redirect('retirement_investments')
+            messages.success(request, "Inwestycja została dodana")
+            return redirect('list_of_investments')
         
         else:
             add_errors_to_messages(request, form)
