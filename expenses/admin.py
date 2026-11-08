@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CommonItem, Expense, Budget, Need, Wish, ExpensesCategories, BudgetResult, BudgetResultExpenses
+from .models import CommonItem, Expense, Budget, Need, Wish, ExpensesCategories, BudgetResult, BudgetResultExpenses, Subscription
 
 
 
@@ -19,5 +19,5 @@ class NeedAdmin(admin.ModelAdmin):
     list_display = ['item', 'category_id', 'price']
 
 
-admin.site.register([CommonItem, Wish, ExpensesCategories, BudgetResult, BudgetResultExpenses])
+admin.site.register([CommonItem, Wish, ExpensesCategories, BudgetResult, BudgetResultExpenses, Subscription])
 

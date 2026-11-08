@@ -110,7 +110,7 @@ class Wish(models.Model):
 class Subscription(models.Model):
     name = models.CharField(max_length=100)
     company = models.CharField(max_length=100)
-    pay_day = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)])
+    category_id = models.ForeignKey(ExpensesCategories, on_delete=models.SET_NULL, null=True, blank=True)
     price = models.DecimalField(max_digits=7, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
