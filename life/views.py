@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from constance import config
 
-from .models import Task, Activity, ActivityGoal
+from .models import Task, Activity, ActivityGoal, ReadingList
 from .forms import TaskForm, ActivityForm
 from.utils import calculate_streak
 
@@ -319,6 +319,15 @@ def learning_dashboard(request):
             "borderWidth": 1
         })
 
+    # f) Lista lektur
+    reading_list_count = ReadingList.objects.exclude(theory=True).count()
+    reading_list_finished_count = ReadingList.objects.filter(finished=True).count()
+    read_literature_str = f"Przeczytane {reading_list_finished_count}/{reading_list_count}" if reading_list_count > 0 else "Brak lektur w bazie"
+
+    reading_list_count = ReadingList.objects.filter(theory=True).count()
+    reading_list_finished_count = ReadingList.objects.filter(finished=True).count()
+    read_theory_str = f"Przeczytane {reading_list_finished_count}/{reading_list_count}" if reading_list_count > 0 else "Brak lektur w bazie"
+
     # --------------------------------------------------------
     # 3. ZWRACANIE KONTEKSTU DO SZABLONU
     # --------------------------------------------------------
@@ -340,6 +349,8 @@ def learning_dashboard(request):
         'current_daily_word_description': getattr(config, 'CURRENT_DAILY_WORD_DESCRIPTION', ''),
         'time_left_english_string': time_left_english_string,
         'time_left_russian_string': time_left_russian_string,
+        'read_literature_str': read_literature_str,
+        'read_theory_str': read_theory_str,
         
         # Nowe zmienne przekazywane do wykresu JS
         'chart_labels': json.dumps(chart_labels),
@@ -347,3 +358,25 @@ def learning_dashboard(request):
     }
     
     return render(request, 'activities/dashboard.html', context)
+
+
+def reading_list(request):
+    reading_list = ReadingList.objects.exclude(theory=True).order_by('id')
+    reading_list_count = reading_list.count()
+    reading_list_finished_count = reading_list.filter(finished=True).count()
+    return render(request, "activities/reading_list.html", {
+        'reading_list': reading_list,
+        'reading_list_count': reading_list_count,
+        'reading_list_finished_count': reading_list_finished_count
+    })
+
+
+def reading_list_theory(request):
+    reading_list = ReadingList.objects.filter(theory=True).order_by('id')
+    reading_list_count = reading_list.count()
+    reading_list_finished_count = reading_list.filter(finished=True).count()
+    return render(request, "activities/reading_list.html", {
+        'reading_list': reading_list,
+        'reading_list_count': reading_list_count,
+        'reading_list_finished_count': reading_list_finished_count
+    })

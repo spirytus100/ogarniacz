@@ -110,6 +110,33 @@
         </div>
     </div>
 
+    <div class="col-md-6 col-lg-3">
+        <div class="card bg-dark border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{% url 'reading_list' %}" class="text-decoration-none text-light">
+                        <h6 class="card-subtitle text-success">Lektury krytyka literackiego</h6>
+                    </a>
+                    <i class="bi bi-book-fill fs-4"></i>
+                </div>
+                <h3 class="card-title fw-bold mt-3">{{ read_literature_str }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card bg-dark border-secondary h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{% url 'reading_list_theory' %}" class="text-decoration-none text-light">
+                        <h6 class="card-subtitle text-success">Teoria krytyki literackiej</h6>
+                    </a>
+                    <i class="bi bi-bookshelf fs-4"></i>
+                </div>
+                <h3 class="card-title fw-bold mt-3">{{ read_theory_str }}</h3>
+            </div>
+        </div>
+    </div>
 
     <!-- DODATKOWE SEKCJE -->
 

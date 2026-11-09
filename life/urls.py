@@ -16,4 +16,6 @@ urlpatterns = [
     path("learning/<int:pk>/", views.learning_details, name="learning_details"),
     path("learning/<int:pk>/edit/", views.edit_learning, name="edit_learning"),
     path("learning/dashboard/", views.learning_dashboard, name="learning_dashboard"),
+    path("learning/reading_list/", views.reading_list, name="reading_list"),
+    path("learning/reading_list_theory/", views.reading_list_theory, name="reading_list_theory"),
 ]

@@ -47,6 +47,14 @@ class ActivityGoal(models.Model):
     def __str__(self):
         return f"Cel dla {self.activity} od {self.start_date} do {self.end_date}"
 
-    
 
+class ReadingList(models.Model):
+    author = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)
+    theory = models.BooleanField(default=False)
+    finished = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title

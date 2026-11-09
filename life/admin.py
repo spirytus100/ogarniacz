@@ -1,10 +1,11 @@
 from django.contrib import admin
-from .models import Task, Activity, ActivityCategory, ActivityGoal
+from .models import Task, Activity, ActivityCategory, ActivityGoal, ReadingList
 
 
 admin.site.register(Task)
 admin.site.register(ActivityCategory)
 admin.site.register(ActivityGoal)
+admin.site.register(ReadingList)
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
