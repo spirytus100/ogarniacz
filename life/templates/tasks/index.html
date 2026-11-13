@@ -1,4 +1,4 @@
-{% extends 'list.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Zadania{% endblock %}
 
@@ -10,22 +10,48 @@
 {% endblock %}
 
 {% block content %}
-<div class="table-responsive">
-    <div style="overflow-x: auto;">
-        <table class="table table-dark table-borderless">
+<div data-bs-theme="dark">
+    
+        <table id="tasksTable" class="table table-dark table-borderless table-hover w-100">
         <thead>
             <tr>
                 <th scope="col">Nazwa</th>
             </tr>
         </thead>
         <tbody>
-            {% for task in page_obj %}
+            {% for task in tasks %}
                 <tr>
                     <td><a href="{% url 'task_details' pk=task.id %}">{{ task.name }}</a></td>
                 </tr>
             {% endfor %}
         </tbody>
         </table>
-    </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        $('#tasksTable').DataTable({
+            responsive: true,
+            // Tłumaczenie interfejsu na język polski:
+            language: {
+                search: "Szukaj:",
+                lengthMenu: "Pokaż _MENU_ pozycji",
+                info: "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
+                infoEmpty: "Pozycji 0 z 0 dostępnych",
+                infoFiltered: "(filtrowanie spośród _MAX_ dostępnych pozycji)",
+                zeroRecords: "Nie znaleziono pasujących pozycji",
+                emptyTable: "Brak danych w tabeli",
+                paginate: {
+                    first: "Pierwsza",
+                    previous: "Poprzednia",
+                    next: "Następna",
+                    last: "Ostatnia"
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

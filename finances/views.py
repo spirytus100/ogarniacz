@@ -465,13 +465,8 @@ def list_of_investments(request):
     ).annotate(
         profit=F('sell_total') - F('buy_total')
     ).order_by('-created_at')
-
-    # Paginacja pozostaje bez zmian
-    paginator = Paginator(investments_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
     
-    context = {'page_obj': page_obj}
+    context = {'investments': investments_list}
     return render(request, "investments/investment_list.html", context)
 
 

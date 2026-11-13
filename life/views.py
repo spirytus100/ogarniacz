@@ -27,10 +27,7 @@ def index(request):
 # Tasks
 def tasks(request):
     tasks = Task.objects.all().order_by('priority', 'completion_date')
-    paginator = Paginator(tasks, 20)  # Pokaż 20 zadań na stronie
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, "tasks/index.html", {'page_obj': page_obj})
+    return render(request, "tasks/index.html", {'tasks': tasks})
 
 
 def edit_task(request, pk):

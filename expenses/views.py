@@ -208,10 +208,7 @@ def new_budget(request):
 
 def needs(request):
     needs = Need.objects.all().order_by("id")
-    paginator = Paginator(needs, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    context = {'needs': needs}
     return render(request, "needs/index.html", context)
 
 
@@ -278,10 +275,7 @@ def delete_need(request, pk):
 
 def wishes(request):
     wishes = Wish.objects.all().order_by("id")
-    paginator = Paginator(wishes, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    context = {'wishes': wishes}
     return render(request, "wishes/index.html", context)
 
 
