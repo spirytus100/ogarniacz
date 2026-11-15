@@ -29,10 +29,7 @@ def index(request):
         total_price=F('quantity') * F('price')
     ).order_by('-expense_date')
     
-    paginator = Paginator(expenses_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    context = {'expenses_list': expenses_list}
     return render(request, "expenses/index.html", context)
 
 

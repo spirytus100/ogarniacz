@@ -24,10 +24,7 @@ def add_errors_to_messages(request, form):
 
 def movies_list(request):
     movies_list = Movie.objects.all().order_by("-watch_date")
-    paginator = Paginator(movies_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    context = {'movies_list': movies_list}
     return render(request, "movies/index.html", context)
 
 
@@ -88,11 +85,8 @@ def delete_movie(request, pk):
 # KSIĄŻKI
 
 def books_list(request):
-    books_list = Book.objects.all().order_by("-id")
-    paginator = Paginator(books_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    books_list = Book.objects.all().order_by("-date_finished")
+    context = {'books_list': books_list}
     return render(request, "books/index.html", context)
 
 

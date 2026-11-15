@@ -546,11 +546,9 @@ def delete_investment(request, pk):
 ### Incomes ###
 
 def incomes(request):
-    incomes = Income.objects.all().order_by("-date")
-    paginator = Paginator(incomes, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'page_obj': page_obj}
+    one_year_ago = timezone.now() - timedelta(days=365)
+    incomes_list = Income.objects.all().filter(date__gte=one_year_ago).order_by("-date")
+    context = {'incomes_list': incomes_list}
     return render(request, "incomes/index.html", context)
 
 

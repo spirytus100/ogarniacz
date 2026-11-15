@@ -1,4 +1,4 @@
-{% extends 'list.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Wydatki{% endblock %}
 
@@ -10,9 +10,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="table-responsive">
-    <div style="overflow-x: auto;">
-        <table class="table table-dark table-borderless">
+<div data-bs-theme="dark">
+    <table id="expensesTable" class="table table-dark table-borderless table-hover w-100">
         <thead>
             <tr>
             <th scope="col">Data</th>
@@ -22,7 +21,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for expense in page_obj %}
+            {% for expense in expenses_list %}
                 <tr>
                     <td>{{ expense.expense_date|date:"Y-m-d" }}</td>
                     <td><a href="{% url 'expenses:details' pk=expense.id %}">{{ expense.item }}</a></td>
@@ -31,7 +30,33 @@
                 </tr>
             {% endfor %}
         </tbody>
-        </table>
-    </div>
+    </table>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        $('#expensesTable').DataTable({
+            responsive: true,
+            order: [[0, 'desc']],
+            // Tłumaczenie interfejsu na język polski:
+            language: {
+                search: "Szukaj:",
+                lengthMenu: "Pokaż _MENU_ pozycji",
+                info: "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
+                infoEmpty: "Pozycji 0 z 0 dostępnych",
+                infoFiltered: "(filtrowanie spośród _MAX_ dostępnych pozycji)",
+                zeroRecords: "Nie znaleziono pasujących pozycji",
+                emptyTable: "Brak danych w tabeli",
+                paginate: {
+                    first: "Pierwsza",
+                    previous: "Poprzednia",
+                    next: "Następna",
+                    last: "Ostatnia"
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

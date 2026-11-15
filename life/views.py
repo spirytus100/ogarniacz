@@ -4,7 +4,7 @@ from math import floor
 
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
+from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Sum
 from constance import config
@@ -83,11 +83,9 @@ def task_details(request, pk):
 
 #Activities
 def learning(request):
-    activities = Activity.objects.all().order_by('-date', '-id')
-    paginator = Paginator(activities, 20)  # Pokaż 20 aktywności na stronie
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, "activities/index.html", {'page_obj': page_obj})
+    one_year_ago = timezone.now() - datetime.timedelta(days=365)
+    learning = Activity.objects.all().filter(date__gte=one_year_ago).order_by("-date")
+    return render(request, "activities/index.html", {'learning': learning})
 
 
 def edit_learning(request, pk):
