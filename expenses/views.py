@@ -99,6 +99,13 @@ def delete_expense(request, pk):
     # 2. Jeśli użytkownik kliknął "Tak, usuń" w formularzu (metoda POST)
     if request.method == "POST":
         expense.delete() # Fizyczne usunięcie rekordu z bazy
+
+        category = expense.category_id
+        
+        budget_row = Budget.objects.get(category_id=category)
+        budget_row.actual_cost = F('actual_cost') - expense.price * expense.quantity
+        budget_row.save()
+        
         return redirect('expenses:index') # Przekierowanie na listę potrzeb
         
     # 3. Jeśli użytkownik tylko wszedł w link "Usuń" (metoda GET), 
