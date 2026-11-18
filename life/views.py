@@ -315,12 +315,13 @@ def learning_dashboard(request):
         })
 
     # f) Lista lektur
-    reading_list_count = ReadingList.objects.exclude(theory=True).count()
-    reading_list_finished_count = ReadingList.objects.filter(finished=True).count()
+    reading_list_count = ReadingList.objects.filter(theory=False).count()
+    reading_list_finished_count = ReadingList.objects.filter(finished=True, theory=False).count()
     read_literature_str = f"Przeczytane {reading_list_finished_count}/{reading_list_count}" if reading_list_count > 0 else "Brak lektur w bazie"
+    print(read_literature_str)
 
     reading_list_count = ReadingList.objects.filter(theory=True).count()
-    reading_list_finished_count = ReadingList.objects.filter(finished=True).count()
+    reading_list_finished_count = ReadingList.objects.filter(finished=True, theory=True).count()
     read_theory_str = f"Przeczytane {reading_list_finished_count}/{reading_list_count}" if reading_list_count > 0 else "Brak lektur w bazie"
 
     # --------------------------------------------------------
